@@ -1,0 +1,19 @@
+{
+	"hooks": {
+		"PostToolUse": [
+			{
+				"matcher": "Write|Edit",
+				"hooks": [
+					{
+						"type": "prompt",
+						"prompt": "运行`bun run check`并修复问题",
+						"timeout": 30
+					}
+				]
+			}
+		]
+	},
+	"enabledPlugins": {
+		"typescript-lsp@claude-plugins-official": true
+	}
+}
