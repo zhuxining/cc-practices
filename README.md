@@ -353,53 +353,42 @@ version: 2.0.0
 
 ```json
 {
-  // 钩子配置
   "hooks": {
     "PostToolUse": [
       {
-        // 匹配 Write 和 Edit 工具
         "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "bun run check", // 运行检查脚本
-            "timeout": 30 // 超时时间（秒）
+            "command": "bun run check",
+            "timeout": 30
           }
         ]
       }
     ]
   },
-
-  // 启用的插件
   "enabledPlugins": {
-    // Git 工作流
+
     "github@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
     "commit-commands@claude-plugins-official": true,
 
-    // 安全与质量
     "security-guidance@claude-plugins-official": true,
 
-    // 开发流程
     "feature-dev@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
 
-    // 前端开发
     "frontend-design@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
 
-    // 浏览器自动化
     "playwright@claude-plugins-official": true,
 
-    // 上下文管理
     "context7@claude-plugins-official": true,
 
-    // 语言服务器
     "pyright-lsp@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
 
-    // 开发工具
     "ralph-loop@claude-plugins-official": true,
     "hookify@claude-plugins-official": true,
     "claude-code-setup@claude-plugins-official": true,
@@ -415,27 +404,23 @@ version: 2.0.0
 
 ```json
 {
-  // 环境变量
   "env": {
     "ANTHROPIC_AUTH_TOKEN": "your-api-key",
     "ANTHROPIC_BASE_URL": "https://open.bigmodel.cn/api/anthropic",
     "API_TIMEOUT_MS": "3000000",
+    "ANTHROPIC_MODEL": "GLM-4.7",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "GLM-4.6",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "GLM-4.7",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "GLM-4.7",
     "FORCE_AUTOUPDATE_PLUGINS": true
   },
-
-  // 自定义状态行
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh",
-    "padding": 0 // 0 = 延伸到边缘
+    "padding": 0
   },
-
-  // 用户级插件（所有项目共享）
   "enabledPlugins": {
-    // 用户特定插件
   },
-
-  // 语言设置
   "language": "chinese"
 }
 ```
