@@ -1,0 +1,49 @@
+{
+    "name": "cc-practice",
+    "owner": {
+        "name": "zhuxining",
+        "email": "zhuxining@outlook.com"
+    },
+    "metadata": {
+        "description": "一套用于提升代码质量和开发效率的最佳实践插件集合",
+        "version": "1.1.0"
+    },
+    "plugins": [
+        {
+            "name": "github-plugin",
+            "source": {
+                "source": "github",
+                "repo": "owner/plugin-repo"
+            }
+        },
+        {
+            "name": "review-plugin",
+            "source": "./plugins/review-plugin",
+            "description": "为快速代码审查添加 /review 技能",
+            "version": "2.1.0",
+            "author": {
+                "name": "DevTools Team"
+            },
+            "homepage": "https://github.com/zhuxining/cc-practice",
+            "repository": "https://github.com/zhuxining/cc-practice",
+            "strict": false,
+            "category": "workflow",
+            "keywords": [
+                "code review",
+                "productivity"
+            ],
+            "tags": [
+                "agents",
+                "skills",
+                "best-practices"
+            ]
+        },
+        {
+            "name": "github-plugin",
+            "source": {
+                "source": "github",
+                "repo": "owner/plugin-repo"
+            }
+        }
+    ]
+}
