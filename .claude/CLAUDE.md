@@ -3,3 +3,4 @@
 - Pay attention to cyclomatic complexity during coding and maximize code reusability as much as possible.
 - Focus on modular design in coding and apply design patterns where appropriate.
 - Minimize modifications when making changes and try not to alter the code of other modules.
+- Self-documenting code preferred over comments.
