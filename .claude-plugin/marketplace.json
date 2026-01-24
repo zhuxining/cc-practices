@@ -39,11 +39,26 @@
             ]
         },
         {
-            "name": "github-plugin",
-            "source": {
-                "source": "github",
-                "repo": "owner/plugin-repo"
-            }
+            "name": "skill-development",
+            "source": "./plugins/skill-development",
+            "description": "Claude Code 技能开发指南和最佳实践",
+            "version": "1.0.0",
+            "author": {
+                "name": "zhuxining"
+            },
+            "homepage": "https://github.com/zhuxining/cc-practice",
+            "repository": "https://github.com/zhuxining/cc-practice",
+            "strict": false,
+            "category": "documentation",
+            "keywords": [
+                "skill development",
+                "documentation"
+            ],
+            "tags": [
+                "skills",
+                "best-practices",
+                "guide"
+            ]
         }
     ]
 }
