@@ -25,7 +25,7 @@ claude plugin marketplace add <本地路径或 git URL>
 | 分类 | 插件 | 说明 |
 |------|------|------|
 | 最佳实践 | `react-best-practices` | React 性能优化和测试指南（57 条规则） |
-| 工作流 | `review-plugin` | 快速代码审查技能 |
+| 文档指南 | `skill-development` | Claude Code 技能开发指南和最佳实践 |
 
 #### 官方插件 (claude-plugins-official)
 

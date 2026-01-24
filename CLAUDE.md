@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 这是一个 **Claude Code 插件市场项目**，包含自用/自开发的插件集合和实践指南文档。
 
 - **插件市场配置**: [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json)
-- **本地插件**: [plugins/](plugins/) - react-best-practices, review-plugin
+- **本地插件**: [plugins/](plugins/) - react-best-practices, skill-development
 - **示例项目**: [sample-project/](sample-project/) - 一个软件项目的配置示例
 
 ## Plugin Market Structure
@@ -108,7 +108,7 @@ description: 简短描述，说明何时使用此技能
 | 插件 | 路径 | 说明 |
 |------|------|------|
 | react-best-practices | [plugins/react-best-practices/](plugins/react-best-practices/) | 57 条 React 优化规则 |
-| review-plugin | [plugins/review-plugin/](plugins/review-plugin/) | 代码审查技能 |
+| skill-development | [plugins/skill-development/](plugins/skill-development/) | Claude Code 技能开发指南和最佳实践 |
 
 ## Common Tasks
 
