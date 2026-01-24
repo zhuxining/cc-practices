@@ -8,7 +8,7 @@ This project is Claude Code practices notes. It includes various guidelines, con
 
 ## Structure
 
-```text
+```
 your-project/
 ├── .claude/
 │   ├── CLAUDE.md                     # Universal agent rules/memory（Respond Language、Important Note）

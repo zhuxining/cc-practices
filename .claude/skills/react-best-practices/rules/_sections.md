@@ -35,7 +35,12 @@ The section ID (in parentheses) is the filename prefix used to group rules.
 **Impact:** LOW-MEDIUM
 **Description:** Micro-optimizations for hot paths can add up to meaningful improvements.
 
-## 7. Advanced Patterns (advanced)
+## 7. Testing Best Practices (test)
 
-**Impact:** LOW  
+**Impact:** HIGH
+**Description:** Writing good tests ensures code quality, catches bugs early, and makes refactoring safer.
+
+## 8. Advanced Patterns (advanced)
+
+**Impact:** LOW
 **Description:** Advanced patterns for specific cases that require careful implementation.

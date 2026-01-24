@@ -124,7 +124,7 @@ your-project/
 1. **优先使用插件**：官方/社区维护，开箱即用
    - Git 工作流：`commit-commands`, `code-review`, `pr-review-toolkit`
    - 开发流程：`feature-dev`, `frontend-design`
-   - 安全防护：`security-guidance
+   - 安全防护：`security-guidance`
    - 浏览器自动化：`playwright`
    - 上下文管理：`context7`
 
