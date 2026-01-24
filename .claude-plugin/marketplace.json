@@ -63,6 +63,38 @@
                 "performance",
                 "testing"
             ]
+        },
+        {
+            "name": "rest-api-standards",
+            "source": "./plugins/rest-api-standards",
+            "description": "框架无关的 REST API 设计规范和标准。涵盖 10 个分类，包括 HTTP 方法、URI 设计、状态码、安全、分页、版本控制、性能和文档",
+            "version": "1.0.0",
+            "author": {
+                "name": "zhuxining"
+            },
+            "homepage": "https://github.com/zhuxining/cc-practices",
+            "repository": "https://github.com/zhuxining/cc-practices",
+            "license": "MIT",
+            "strict": false,
+            "category": "skills",
+            "keywords": [
+                "rest",
+                "api",
+                "http",
+                "standards",
+                "framework-agnostic",
+                "authentication",
+                "pagination",
+                "versioning"
+            ],
+            "tags": [
+                "rest",
+                "api",
+                "standards",
+                "http",
+                "security",
+                "performance"
+            ]
         }
     ]
 }
