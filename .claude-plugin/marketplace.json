@@ -17,28 +17,6 @@
             }
         },
         {
-            "name": "review-plugin",
-            "source": "./plugins/review-plugin",
-            "description": "为快速代码审查添加 /review 技能",
-            "version": "2.1.0",
-            "author": {
-                "name": "DevTools Team"
-            },
-            "homepage": "https://github.com/zhuxining/cc-practices",
-            "repository": "https://github.com/zhuxining/cc-practices",
-            "strict": false,
-            "category": "workflow",
-            "keywords": [
-                "code review",
-                "productivity"
-            ],
-            "tags": [
-                "agents",
-                "skills",
-                "best-practices"
-            ]
-        },
-        {
             "name": "skill-development",
             "source": "./plugins/skill-development",
             "description": "Claude Code 技能开发指南和最佳实践",
@@ -58,6 +36,32 @@
                 "skills",
                 "best-practices",
                 "guide"
+            ]
+        },
+        {
+            "name": "react-best-practices",
+            "source": "./plugins/react-best-practices",
+            "description": "React 性能优化和测试最佳实践指南，去除 next.js 相关并增加 test 内容，包含 57 条规则",
+            "version": "1.0.0",
+            "author": {
+                "name": "zhuxining"
+            },
+            "homepage": "https://github.com/zhuxining/cc-practices",
+            "repository": "https://github.com/zhuxining/cc-practices",
+            "license": "MIT",
+            "strict": false,
+            "category": "skills",
+            "keywords": [
+                "react",
+                "performance",
+                "testing",
+                "optimization"
+            ],
+            "tags": [
+                "react",
+                "best-practices",
+                "performance",
+                "testing"
             ]
         }
     ]
