@@ -88,11 +88,8 @@ Claude Code 支持多层级 CLAUDE.md，每层负责不同粒度的规则：
 your-project/
 ├── .claude/
 │   ├── CLAUDE.md            # 通用规则（语言、重要规范）
-│   ├── rules/
-│   │   ├── code-style.md    # 代码风格指南
-│   │   ├── testing.md       # 测试约定
-│   │   └── security.md      # 安全要求
 │   └── skills/              # 最佳实践集合
+│       ├── react-best-practices
 │       ├── coding-standards
 │       ├── web-design-guidelines
 │       ├── tdd-workflow
