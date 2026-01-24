@@ -14,16 +14,10 @@
     ]
   },
   "extraKnownMarketplaces": {
-    "company-tools": {
+    "cc-practices": {
       "source": {
         "source": "github",
-        "repo": "your-org/claude-plugins"
-      }
-    },
-    "compa2ny-tools": {
-      "source": {
-        "source": "github",
-        "repo": "your-org/claude-plugins"
+        "repo": "zhuxining/cc-practices"
       }
     }
   },
