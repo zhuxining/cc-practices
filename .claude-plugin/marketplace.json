@@ -24,8 +24,8 @@
             "author": {
                 "name": "DevTools Team"
             },
-            "homepage": "https://github.com/zhuxining/cc-practice",
-            "repository": "https://github.com/zhuxining/cc-practice",
+            "homepage": "https://github.com/zhuxining/cc-practices",
+            "repository": "https://github.com/zhuxining/cc-practices",
             "strict": false,
             "category": "workflow",
             "keywords": [
@@ -46,8 +46,8 @@
             "author": {
                 "name": "zhuxining"
             },
-            "homepage": "https://github.com/zhuxining/cc-practice",
-            "repository": "https://github.com/zhuxining/cc-practice",
+            "homepage": "https://github.com/zhuxining/cc-practices",
+            "repository": "https://github.com/zhuxining/cc-practices",
             "strict": false,
             "category": "documentation",
             "keywords": [
