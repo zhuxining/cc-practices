@@ -4,3 +4,15 @@
 # Env
 .env
 .env.prod
+
+
+# Python Scrpipts Dev Env
+pyproject.toml
+uv.lock
+.python-version
+__pycache__
+.cache
+.pytest_cache
+.ruff_cache
+.ropeproject
+*/output/
