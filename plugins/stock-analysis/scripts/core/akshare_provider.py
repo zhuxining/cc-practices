@@ -780,5 +780,5 @@ class AKShareProvider:
             # 移除单位
             value = str(value).replace("万", "").replace("亿", "").replace("%", "").strip()
             return float(value)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return None

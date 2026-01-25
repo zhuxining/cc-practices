@@ -1,0 +1,61 @@
+[project]
+name = "cc-practices"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.14"
+dependencies = [
+    "longport>=3.0.20",
+    "akshare>=1.18.19",
+    "ta-lib>=0.6.8",
+    "pandas>=3.0.0",
+    "pyyaml>=6.0.3",
+    "jinja2>=3.1.6",
+]
+
+[dependency-groups]
+dev = ["ty>=0.0.13", "ruff>=0.14.14"]
+
+
+[[tool.uv.index]]
+url = "http://mirrors.aliyun.com/pypi/simple/"
+default = true
+
+[tool.uv.workspace]
+members = ["git"]
+
+# Ruff
+[tool.ruff]
+exclude = ["alembic"]
+line-length = 100
+fix = true
+unsafe-fixes = true
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # Pyflakes
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "C4",  # flake8-comprehensions
+    "I",   # isort
+    "TID", # tidy imports
+    "PTH", # pathlib
+    "RUF", # Ruff-specific
+    "NPY", # numpy-specific
+    "PD",  # pandas-specific
+]
+ignore = [
+    "E501",   # line too long
+    "RUF001", # 
+    "RUF002", # 
+    "RUF003", # 
+    "RUF029", # functions declared async that do not await 
+    "F401",   # imported but unused
+    # "F841",   # local variable assigned but never used
+]
+unfixable = []
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+force-sort-within-sections = true

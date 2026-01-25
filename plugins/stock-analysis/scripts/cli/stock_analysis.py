@@ -185,16 +185,16 @@ def main() -> int:
         epilog="""
 示例:
   # 生成市场报告
-  %(prog)s report market --format markdown --output market_report.md
+  uv run %(prog)s report market --format markdown --output market_report.md
 
   # 生成分组报告
-  %(prog)s report group --symbols-file stocks.txt --output group_report.md
+  uv run %(prog)s report group --symbols-file stocks.txt --output group_report.md
 
   # 快速查看市场
-  %(prog)s quick market
+  uv run %(prog)s quick market
 
   # 快速查看分组
-  %(prog)s quick group --symbols-file stocks.txt
+  uv run %(prog)s quick group --symbols-file stocks.txt
         """,
     )
 

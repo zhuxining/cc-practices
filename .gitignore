@@ -8,7 +8,6 @@
 
 # Python Scrpipts Dev Env
 .venv
-pyproject.toml
 uv.lock
 .python-version
 __pycache__
