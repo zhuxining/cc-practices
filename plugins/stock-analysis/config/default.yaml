@@ -93,10 +93,9 @@ market:
 
   # 市场情绪权重
   sentiment_weights:
-    breadth: 0.3        # 市场广度权重（涨跌比）
-    volume: 0.2         # 成交量权重
-    limit_up: 0.2       # 涨停比例权重
-    north_capital: 0.3  # 北向资金权重
+    breadth: 0.4        # 市场广度权重（涨跌比）
+    volume: 0.3         # 成交量权重
+    limit_up: 0.3       # 涨停比例权重
 
 # 市场报告配置
 market_report:

@@ -62,7 +62,6 @@ class MarketReporter:
             "timestamp": snapshot_data["timestamp"],
             "indices": snapshot_data["indices"],
             "statistics": snapshot_data["statistics"],
-            "north_capital": snapshot_data["north_capital"],
             "sentiment": sentiment_data,
             "hot_sectors": hot_sectors,
             "flow_ranking": flow_ranking.head(10).to_dict("records")
@@ -115,11 +114,8 @@ class MarketReporter:
             lines.append(f"| {idx['name']} | {idx['price']:,.2f} | {change_str} {arrow} |")
 
         stats = data["statistics"]
-        nc = data["north_capital"]
 
         lines.append(f"\n**总成交额**：{stats['total_turnover'] / 100000000:,.0f} 亿")
-        nc_str = f"+{nc['north_flow']:.0f}" if nc["north_flow"] > 0 else f"{nc['north_flow']:.0f}"
-        lines.append(f"**北向资金**：{nc_str} 亿")
 
         # 市场情绪
         lines.append("\n## 🎭 市场情绪\n")

@@ -183,7 +183,10 @@ def compute_macd(
     close = _column_as_ndarray(result, close_column)
     fast, slow, signal = periods
     macd, macd_signal, macd_hist = talib.MACD(
-        close, fastperiod=fast, slowperiod=slow, signalperiod=signal,
+        close,
+        fastperiod=fast,
+        slowperiod=slow,
+        signalperiod=signal,
     )
     result["macd"] = np.round(macd, 3)
     result["macd_signal"] = np.round(macd_signal, 3)

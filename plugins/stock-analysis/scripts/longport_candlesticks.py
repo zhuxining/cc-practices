@@ -29,12 +29,11 @@ Note:
 """
 
 import argparse
-import sys
 from contextlib import contextmanager
 from datetime import UTC, datetime
+import sys
 from typing import TYPE_CHECKING
 
-import pandas as pd
 from _output_helper import resolve_output_path
 from _talib_calculator import (
     compute_ad,
@@ -53,6 +52,7 @@ from _talib_calculator import (
     compute_vwma,
 )
 from longport.openapi import AdjustType, Config, Period, QuoteContext
+import pandas as pd
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -165,9 +165,7 @@ def fetch_candlesticks_with_indicators(
 
 def _candlesticks_to_df(resp, symbol: str = "") -> pd.DataFrame:
     """将 API 响应转换为 DataFrame."""
-    c_list = (
-        resp if isinstance(resp, list) else getattr(resp, "candlesticks", None) or []
-    )
+    c_list = resp if isinstance(resp, list) else getattr(resp, "candlesticks", None) or []
 
     if not c_list:
         return pd.DataFrame()

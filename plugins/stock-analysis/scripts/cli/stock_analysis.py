@@ -131,10 +131,6 @@ def cmd_quick_market(args: argparse.Namespace) -> None:
         f"  上涨: {stats['up_count']} | 下跌: {stats['down_count']} | 涨停: {stats['limit_up_count']}"
     )
 
-    nc = data["north_capital"]
-    nc_str = f"+{nc['north_flow']:.0f}" if nc["north_flow"] > 0 else f"{nc['north_flow']:.0f}"
-    print(f"  北向资金: {nc_str} 亿")
-
     print(f"\n更新时间: {data['timestamp']}\n")
 
 

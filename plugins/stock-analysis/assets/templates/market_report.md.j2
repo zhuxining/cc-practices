@@ -11,7 +11,6 @@
 {% endfor %}
 
 **总成交额**：{{ "%.0f"|format(statistics.total_turnover / 100000000) }} 亿
-**北向资金**：{{ "%+.0f"|format(north_capital.north_flow) }} 亿（{{ "净流入" if north_capital.north_flow > 0 else "净流出" }}）
 
 ## 🎭 市场情绪
 

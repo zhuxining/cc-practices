@@ -380,52 +380,6 @@ class AKShareProvider:
             msg = f"获取板块资金流向失败: {e}"
             raise RuntimeError(msg)
 
-    # ==================== 北向资金 ====================
-
-    def get_north_capital_flow(self, date: str | None = None) -> pd.DataFrame:
-        """获取北向资金流向.
-
-        Args:
-            date: 日期 (YYYYMMDD 格式)，None 表示最新
-
-        Returns:
-            DataFrame with columns:
-            - date: 日期
-            - north_flow: 北向资金净流入
-            - sh_flow: 沪股通净流入
-            - sz_flow: 深股通净流入
-
-        """
-        try:
-            # 获取沪深港通历史数据
-            df = self._fetch_with_retry(ak.stock_hsgt_hist_em, symbol="北向资金")
-
-            # 重命名列
-            df = df.rename(
-                columns={
-                    "日期": "date",
-                    "北向资金": "north_flow",
-                    "南向资金": "south_flow",
-                    "沪股通": "sh_flow",
-                    "深股通": "sz_flow",
-                },
-            )
-
-            # 确保数值类型
-            numeric_cols = ["north_flow", "sh_flow", "sz_flow"]
-            for col in numeric_cols:
-                if col in df.columns:
-                    df[col] = pd.to_numeric(df[col], errors="coerce")
-
-            # 按日期排序
-            df = df.sort_values(by="date", ascending=False)
-
-            return df[["date", "north_flow", "sh_flow", "sz_flow"]]
-
-        except Exception as e:
-            msg = f"获取北向资金失败: {e}"
-            raise RuntimeError(msg)
-
     # ==================== 个股数据 ====================
 
     def get_stock_spot(self, symbol: str) -> dict:

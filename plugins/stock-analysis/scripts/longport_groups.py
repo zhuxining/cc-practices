@@ -33,8 +33,8 @@ Examples:
 """
 
 import argparse
-import sys
 from contextlib import contextmanager
+import sys
 from typing import TYPE_CHECKING
 
 from _output_helper import resolve_output_path
@@ -116,8 +116,6 @@ def update_group(args: argparse.Namespace) -> None:
 
         if updated is None:
             sys.exit(1)
-        else:
-            pass
 
 
 def get_symbols(args: argparse.Namespace) -> None:
@@ -142,8 +140,6 @@ def get_symbols(args: argparse.Namespace) -> None:
     if args.output:
         output_path = resolve_output_path(args.output)
         output_path.write_text("\n".join(symbols) + "\n")
-    else:
-        pass
 
 
 def delete_group(args: argparse.Namespace) -> None:

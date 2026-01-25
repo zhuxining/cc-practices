@@ -29,12 +29,7 @@ class SentimentAnalyzer:
         # 情绪权重配置
         self.weights = self.config.get(
             "sentiment_weights",
-            {
-                "breadth": 0.3,
-                "volume": 0.2,
-                "limit_up": 0.2,
-                "north_capital": 0.3,
-            },
+            {"breadth": 0.4, "volume": 0.3, "limit_up": 0.3},
         )
 
         # 情绪级别配置
@@ -60,7 +55,6 @@ class SentimentAnalyzer:
             - volume_score: 量比评分
             - limit_up_ratio: 涨停比例
             - limit_up_score: 涨停评分
-            - north_capital_score: 北向资金评分
             - overall_score: 综合情绪评分 (0-5)
             - level: 情绪级别 (very_fearful, fearful, neutral, greedy, very_greedy)
             - status: 情绪状态描述
@@ -76,14 +70,12 @@ class SentimentAnalyzer:
         breadth = self._calculate_breadth(stats)
         volume_ratio = self._calculate_volume_ratio(stats)
         limit_up_ratio = self._calculate_limit_up_ratio(stats)
-        north_score = self._calculate_north_capital_score()
 
         # 计算综合评分
         overall_score = (
             breadth["score"] * self.weights["breadth"]
             + volume_ratio["score"] * self.weights["volume"]
             + limit_up_ratio["score"] * self.weights["limit_up"]
-            + north_score * self.weights["north_capital"]
         )
 
         # 确定情绪级别
@@ -96,7 +88,6 @@ class SentimentAnalyzer:
             "volume_score": volume_ratio["score"],
             "limit_up_ratio": limit_up_ratio["ratio"],
             "limit_up_score": limit_up_ratio["score"],
-            "north_capital_score": north_score,
             "overall_score": round(overall_score, 2),
             "level": level["level"],
             "status": level["status"],
@@ -206,39 +197,6 @@ class SentimentAnalyzer:
             score = min(4.0 + ((ratio - 0.03) / 0.02) * 1.0, 5.0)
 
         return {"ratio": round(ratio, 4), "score": score}
-
-    def _calculate_north_capital_score(self) -> float:
-        """计算北向资金评分.
-
-        Returns:
-            评分 (0-5)
-
-        """
-        try:
-            df = self.provider.get_north_capital_flow()
-            if df.empty:
-                return 2.5
-
-            latest = df.iloc[0]
-            flow = latest["north_flow"]
-
-            # 评分 (0-5)
-            # flow < -50亿: 1分
-            # flow = 0: 2.5分
-            # flow > 100亿: 5分
-            if flow < -50:
-                score = max(1.0, 2.5 + (flow + 50) / 100)
-            elif flow < 0:
-                score = 2.5 + (flow / 50) * 1.5
-            elif flow < 100:
-                score = 2.5 + (flow / 100) * 1.5
-            else:
-                score = min(4.0 + ((flow - 100) / 100) * 1.0, 5.0)
-
-            return round(score, 2)
-
-        except Exception:
-            return 2.5
 
     def _get_sentiment_level(self, score: float) -> dict:
         """根据评分确定情绪级别.

@@ -34,7 +34,6 @@ class MarketSnapshot:
             - timestamp: 生成时间
             - indices: 指数数据列表
             - statistics: 市场统计
-            - north_capital: 北向资金
 
         """
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -45,14 +44,10 @@ class MarketSnapshot:
         # 获取市场统计
         statistics = self.provider.get_market_statistics()
 
-        # 获取北向资金（最新）
-        north_capital = self._get_latest_north_capital()
-
         return {
             "timestamp": timestamp,
             "indices": indices,
             "statistics": statistics,
-            "north_capital": north_capital,
         }
 
     def _get_indices_data(self) -> list[dict]:
@@ -79,33 +74,6 @@ class MarketSnapshot:
 
         except Exception:
             return []
-
-    def _get_latest_north_capital(self) -> dict:
-        """获取最新北向资金数据.
-
-        Returns:
-            北向资金数据
-
-        """
-        try:
-            df = self.provider.get_north_capital_flow()
-
-            if df.empty:
-                return {"north_flow": 0, "sh_flow": 0, "sz_flow": 0, "date": None}
-
-            latest = df.iloc[0]
-
-            return {
-                "north_flow": round(latest["north_flow"], 2)
-                if pd.notna(latest["north_flow"])
-                else 0,
-                "sh_flow": round(latest["sh_flow"], 2) if pd.notna(latest["sh_flow"]) else 0,
-                "sz_flow": round(latest["sz_flow"], 2) if pd.notna(latest["sz_flow"]) else 0,
-                "date": latest["date"],
-            }
-
-        except Exception:
-            return {"north_flow": 0, "sh_flow": 0, "sz_flow": 0, "date": None}
 
     def to_dataframe(self) -> pd.DataFrame:
         """将快照转换为 DataFrame（用于 CSV 输出）.
@@ -134,9 +102,5 @@ class MarketSnapshot:
         data["limit_up_count"] = stats["limit_up_count"]
         data["limit_down_count"] = stats["limit_down_count"]
         data["total_turnover"] = stats["total_turnover"]
-
-        # 添加北向资金
-        nc = snapshot["north_capital"]
-        data["north_capital_flow"] = nc["north_flow"]
 
         return pd.DataFrame([data])
