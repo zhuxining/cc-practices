@@ -1,4 +1,4 @@
-"""技术指标计算工具,基于 TA-Lib 提供多类型行情指标计算。
+"""技术指标计算工具,基于 TA-Lib 提供多类型行情指标计算。.
 
 指标分类:
 1. 基础指标: ROCR(涨幅), MIDPRICE(中间价)
@@ -29,12 +29,15 @@ Usage:
   df = compute_macd(df)
 """
 
-from collections.abc import Sequence
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
-import pandas as pd
 import talib
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    import pandas as pd
 
 # ============================================================================
 # 默认参数配置
@@ -66,7 +69,8 @@ def _ensure_columns(frame: pd.DataFrame, columns: Sequence[str]) -> None:
     """验证 DataFrame 包含所需列."""
     missing = [col for col in columns if col not in frame.columns]
     if missing:
-        raise ValueError(f"DataFrame 缺少必需列: {', '.join(missing)}")
+        msg = f"DataFrame 缺少必需列: {', '.join(missing)}"
+        raise ValueError(msg)
 
 
 def _get_columns_data(
@@ -86,7 +90,7 @@ def compute_change(
     change_periods: Sequence[int] | None = None,
     close_column: str = "close",
 ) -> pd.DataFrame:
-    """计算多周期涨幅 (ROCR)
+    """计算多周期涨幅 (ROCR).
 
     衡量价格波动速度,突破 1.0 动量增强,低于 1.0 减弱。
 
@@ -97,6 +101,7 @@ def compute_change(
 
     Returns:
         附加涨幅列的 DataFrame
+
     """
     periods = tuple(change_periods or (1, 5, 10, 20))
     _ensure_columns(frame, [close_column])
@@ -140,6 +145,7 @@ def compute_ema(
 
     Returns:
         附加 EMA 列的 DataFrame
+
     """
     periods = tuple(ema_periods or (5, 10, 20, 60))
     _ensure_columns(frame, [close_column])
@@ -166,16 +172,18 @@ def compute_macd(
 
     Returns:
         附加 MACD 列的 DataFrame
+
     """
     periods = tuple(macd_periods or (12, 26, 9))
     if len(periods) != 3:
-        raise ValueError("MACD 参数必须是 (fast, slow, signal) 三个整数")
+        msg = "MACD 参数必须是 (fast, slow, signal) 三个整数"
+        raise ValueError(msg)
     _ensure_columns(frame, [close_column])
     result = frame.copy()
     close = _column_as_ndarray(result, close_column)
     fast, slow, signal = periods
     macd, macd_signal, macd_hist = talib.MACD(
-        close, fastperiod=fast, slowperiod=slow, signalperiod=signal
+        close, fastperiod=fast, slowperiod=slow, signalperiod=signal,
     )
     result["macd"] = np.round(macd, 3)
     result["macd_signal"] = np.round(macd_signal, 3)
@@ -205,6 +213,7 @@ def compute_adx(
 
     Returns:
         附加 ADX 列的 DataFrame
+
     """
     periods = tuple(adx_periods or (14, 7))
     _ensure_columns(frame, [high_column, low_column, close_column])
@@ -235,6 +244,7 @@ def compute_rsi(
 
     Returns:
         附加 RSI 列的 DataFrame
+
     """
     periods = tuple(rsi_periods or (7, 14))
     _ensure_columns(frame, [close_column])
@@ -264,6 +274,7 @@ def compute_cci(
 
     Returns:
         附加 CCI 列的 DataFrame
+
     """
     periods = tuple(cci_periods or (14, 7))
     _ensure_columns(frame, [high_column, low_column, close_column])
@@ -295,10 +306,12 @@ def compute_stoch(
 
     Returns:
         附加 Stoch K/D 列的 DataFrame
+
     """
     periods = tuple(stoch_periods or (9, 3, 3))
     if len(periods) != 3:
-        raise ValueError("STOCH 参数必须是 (period, fastk_period, fastd_period) 三个整数")
+        msg = "STOCH 参数必须是 (period, fastk_period, fastd_period) 三个整数"
+        raise ValueError(msg)
     _ensure_columns(frame, [high_column, low_column, close_column])
     result = frame.copy()
     high = _column_as_ndarray(result, high_column)
@@ -340,6 +353,7 @@ def compute_atr(
 
     Returns:
         附加 ATR 列的 DataFrame
+
     """
     periods = tuple(atr_periods or (3, 14))
     _ensure_columns(frame, [high_column, low_column, close_column])
@@ -367,6 +381,7 @@ def compute_bbands(
 
     Returns:
         附加 BBANDS 列的 DataFrame
+
     """
     _ensure_columns(frame, [close_column])
     result = frame.copy()
@@ -374,12 +389,13 @@ def compute_bbands(
 
     params = tuple(bbands_params or (5, 2.0, 2.0, talib.MA_Type.SMA))
     if len(params) != 4:
-        raise ValueError("BBANDS 参数必须是 (timeperiod, nbdev_up, nbdev_dn, matype) 四个值")
+        msg = "BBANDS 参数必须是 (timeperiod, nbdev_up, nbdev_dn, matype) 四个值"
+        raise ValueError(msg)
 
     timeperiod_val = int(params[0])
     nbdev_up_val = float(params[1])
     nbdev_dn_val = float(params[2])
-    matype_val = cast(talib.MA_Type, params[3])
+    matype_val = cast("talib.MA_Type", params[3])
 
     upper, middle, lower = talib.BBANDS(
         close,
@@ -414,6 +430,7 @@ def compute_obv(
 
     Returns:
         附加 OBV 列的 DataFrame
+
     """
     _ensure_columns(frame, [close_column, volume_column])
     result = frame.copy()
@@ -442,6 +459,7 @@ def compute_ad(
 
     Returns:
         附加 AD 列的 DataFrame
+
     """
     _ensure_columns(frame, [high_column, low_column, close_column, volume_column])
     result = frame.copy()
@@ -468,6 +486,7 @@ def compute_volume_sma(
 
     Returns:
         附加成交量 SMA 列的 DataFrame
+
     """
     periods = tuple(volume_sma_periods or (5, 10, 20))
     _ensure_columns(frame, [volume_column])
@@ -498,6 +517,7 @@ def compute_vwma(
 
     Returns:
         附加 VWMA 列的 DataFrame
+
     """
     periods = tuple(vwma_periods or (5, 10))
     _ensure_columns(frame, [close_column, volume_column])

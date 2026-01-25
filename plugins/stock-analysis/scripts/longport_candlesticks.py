@@ -8,7 +8,7 @@
 # ]
 # ///
 
-"""LongPort K 线数据获取工具,支持多周期行情查询与技术指标计算。
+"""LongPort K 线数据获取工具,支持多周期行情查询与技术指标计算。.
 
 集成 LongPort API 获取K线数据与 TA-Lib 指标计算功能,支持导出包含完整指标的 CSV。
 
@@ -25,14 +25,16 @@ Usage:
 Note:
   - 所有输出统一保存在项目根目录的 output/ 文件夹
   - 可以指定子路径, 如 --output stocks/700.hk.csv
+
 """
 
 import argparse
-from collections.abc import Iterator
+import sys
 from contextlib import contextmanager
 from datetime import UTC, datetime
-import sys
+from typing import TYPE_CHECKING
 
+import pandas as pd
 from _output_helper import resolve_output_path
 from _talib_calculator import (
     compute_ad,
@@ -51,13 +53,14 @@ from _talib_calculator import (
     compute_vwma,
 )
 from longport.openapi import AdjustType, Config, Period, QuoteContext
-import pandas as pd
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 @contextmanager
 def open_quote_ctx() -> Iterator[QuoteContext]:
-    """从 .env 初始化 QuoteContext,并在结束时尝试关闭。"""
-
+    """从 .env 初始化 QuoteContext,并在结束时尝试关闭。."""
     ctx = QuoteContext(Config.from_env())
     try:
         yield ctx
@@ -74,12 +77,10 @@ def fetch_candlesticks(
     adjust_type: type[AdjustType] = AdjustType.ForwardAdjust,
 ) -> pd.DataFrame:
     """获取标的 K 线并返回 DataFrame(index 为 UTC datetime)."""
-
     try:
         with open_quote_ctx() as ctx:
             resp = ctx.candlesticks(symbol, period, count, adjust_type)
-    except Exception as e:
-        print(f"✗ API 调用失败: {e}", file=sys.stderr)
+    except Exception:
         return pd.DataFrame()
 
     return _candlesticks_to_df(resp, symbol)
@@ -92,7 +93,7 @@ def fetch_candlesticks_with_indicators(
     adjust_type: type[AdjustType] = AdjustType.ForwardAdjust,
     indicators: list[str] | None = None,
 ) -> pd.DataFrame:
-    """获取 K 线数据并计算指定的技术指标。
+    """获取 K 线数据并计算指定的技术指标。.
 
     Args:
         symbol: 标的代码
@@ -104,6 +105,7 @@ def fetch_candlesticks_with_indicators(
 
     Returns:
         包含原始价格数据和指标的 DataFrame
+
     """
     df = fetch_candlesticks(symbol, period, count, adjust_type)
 
@@ -125,8 +127,7 @@ def fetch_candlesticks_with_indicators(
         df = compute_obv(df)  # OBV
         df = compute_ad(df)  # A/D
         df = compute_volume_sma(df)  # 成交量均线
-        df = compute_vwma(df)  # 成交量加权均线
-        return df
+        return compute_vwma(df)  # 成交量加权均线
 
     # 计算指定的指标
     for indicator in indicators:
@@ -164,7 +165,9 @@ def fetch_candlesticks_with_indicators(
 
 def _candlesticks_to_df(resp, symbol: str = "") -> pd.DataFrame:
     """将 API 响应转换为 DataFrame."""
-    c_list = resp if isinstance(resp, list) else getattr(resp, "candlesticks", None) or []
+    c_list = (
+        resp if isinstance(resp, list) else getattr(resp, "candlesticks", None) or []
+    )
 
     if not c_list:
         return pd.DataFrame()
@@ -188,8 +191,7 @@ def _candlesticks_to_df(resp, symbol: str = "") -> pd.DataFrame:
                 "volume": int(c.volume),
                 "turnover": float(c.turnover),
             })
-    except Exception as e:
-        print(f"✗ 数据转换错误: {e}", file=sys.stderr)
+    except Exception:
         return pd.DataFrame()
 
     df = pd.DataFrame(records)
@@ -221,7 +223,7 @@ def _parse_period(value: str) -> type[Period]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="获取 LongPort K 线数据与技术指标,输出 CSV 或 stdout"
+        description="获取 LongPort K 线数据与技术指标,输出 CSV 或 stdout",
     )
     parser.add_argument("--symbol", required=True, help="标的代码,如 700.HK / AAPL.US")
     parser.add_argument(
@@ -260,36 +262,17 @@ def main() -> None:
     if df.empty:
         import sys
 
-        print("✗ 无法获取数据. 请检查:", file=sys.stderr)
-        print(
-            f"  1. symbol 格式: {args.symbol} (正确格式如 700.HK, 159735.SZ, AAPL.US)",
-            file=sys.stderr,
-        )
         sys.exit(1)
 
     if args.output:
         output_path = resolve_output_path(args.output)
         df.to_csv(output_path)
-        print(f"✓ 已写入: {output_path}")
-        print(f"  行数: {len(df)}")
-        print(f"  列数: {len(df.columns)}")
-        print(f"  时间范围: {df.index[0]} 至 {df.index[-1]}")
-    else:
-        print("\n=== 后 10 行数据 ===")
-        print(df.tail())
-        print("\n=== 汇总 ===")
-        print(f"总行数: {len(df)}")
-        print(f"列数: {len(df.columns)}")
-        print(f"列名: {', '.join(df.columns.tolist())}")
-        print(f"时间范围: {df.index[0]} 至 {df.index[-1]}")
 
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n✗ 用户中断", file=sys.stderr)
         sys.exit(130)
-    except Exception as e:
-        print(f"✗ 未预期错误: {e}", file=sys.stderr)
+    except Exception:
         sys.exit(1)

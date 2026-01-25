@@ -1,4 +1,4 @@
-"""输出路径处理工具
+"""输出路径处理工具.
 
 统一管理所有脚本的输出路径, 确保输出文件都在项目根目录的 output/ 文件夹中。
 
@@ -17,10 +17,11 @@ from pathlib import Path
 
 
 def get_output_dir() -> Path:
-    """获取项目根目录下的 output 文件夹路径。
+    """获取项目根目录下的 output 文件夹路径。.
 
     Returns:
         output 目录的绝对路径
+
     """
     # 脚本在 stock-analysis/scripts/ 目录, 项目根目录是上上级
     project_root = Path(__file__).parent.parent.parent
@@ -33,7 +34,7 @@ def get_output_dir() -> Path:
 
 
 def resolve_output_path(filename: str) -> Path:
-    """解析输出路径, 统一输出到项目根目录的 output/ 文件夹。
+    """解析输出路径, 统一输出到项目根目录的 output/ 文件夹。.
 
     所有输出都强制在 output/ 文件夹下, 如果 filename 包含路径分隔符,
     会创建相应的子目录结构。
@@ -50,6 +51,7 @@ def resolve_output_path(filename: str) -> Path:
 
         >>> resolve_output_path("stocks/700.hk.csv")
         PosixPath('/path/to/project/output/stocks/700.hk.csv')
+
     """
     output_dir = get_output_dir()
     output_path = output_dir / filename

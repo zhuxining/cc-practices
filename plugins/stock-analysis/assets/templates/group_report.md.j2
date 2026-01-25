@@ -1,0 +1,109 @@
+# 自选分组分析报告 - {{ group_name }}
+
+**分组**：{{ group_name }}
+**股票数量**：{{ stock_count }} 只
+**分析时间**：{{ timestamp }}
+
+## 📋 组合概览
+
+| 指标 | 数值 |
+|------|------|
+| 今日上涨 | {{ summary.up_count }} 只 |
+| 今日下跌 | {{ summary.down_count }} 只 |
+| 平均涨跌 | {{ summary.avg_change }}% |
+
+## 🎯 交易建议
+
+{% if signals.buy -%}
+### ✅ 建议关注 ({{ signals.buy|length }}只)
+
+| 股票 | 代码 | 现价 | 涨跌 | 评分 | 风险 | 建议理由 |
+|------|------|------|------|------|------|----------|
+{% for stock in signals.buy[:10] -%}
+| {{ stock.name }} | {{ stock.symbol }} | {{ "%.2f"|format(stock.price) }} | {{ "%+.2f%%"|format(stock.change_pct) }} | {{ stock.overall_score }}/10 | {{ stock.risk_level }} | {{ stock.reason }} |
+{% endfor %}
+
+{% endif -%}
+{% if signals.hold -%}
+### ⚠️ 谨慎持有 ({{ signals.hold|length }}只)
+
+| 股票 | 代码 | 现价 | 涨跌 | 建议 |
+|------|------|------|------|------|
+{% for stock in signals.hold[:10] -%}
+| {{ stock.name }} | {{ stock.symbol }} | {{ "%.2f"|format(stock.price) }} | {{ "%+.2f%%"|format(stock.change_pct) }} | 观望 |
+{% endfor %}
+
+{% endif -%}
+{% if signals.sell -%}
+### ❌ 建议规避 ({{ signals.sell|length }}只)
+
+| 股票 | 代码 | 现价 | 涨跌 | 规避理由 |
+|------|------|------|------|----------|
+{% for stock in signals.sell[:10] -%}
+| {{ stock.name }} | {{ stock.symbol }} | {{ "%.2f"|format(stock.price) }} | {{ "%+.2f%%"|format(stock.change_pct) }} | {{ stock.reason }} |
+{% endfor %}
+
+{% endif -%}
+**综合建议**：{{ signals.summary }}
+
+## 📊 技术面扫描
+
+{% set signal_summary = signals.summary -%}
+{% if signal_summary.golden_cross -%}
+### 金叉信号 ({{ signal_summary.golden_cross|length }}只)
+{% for stock in signal_summary.golden_cross[:5] -%}
+- **{{ stock.name }}**（{{ stock.symbol }}）：{% for s in stock.signals if 'cross' in s.type %}{{ s.name }}{% endfor %}
+{% endfor %}
+
+{% endif -%}
+{% if signal_summary.oversold -%}
+### 超卖反弹 ({{ signal_summary.oversold|length }}只)
+{% for stock in signal_summary.oversold[:5] -%}
+- **{{ stock.name }}**（{{ stock.symbol }}）：RSI偏低，关注反弹机会
+{% endfor %}
+
+{% endif -%}
+{% if signal_summary.breakout -%}
+### 放量突破 ({{ signal_summary.breakout|length }}只)
+{% for stock in signal_summary.breakout[:5] -%}
+- **{{ stock.name }}**（{{ stock.symbol }}）：放量突破关键位
+{% endfor %}
+{% endif -%}
+
+## 📈 表现分析
+
+{% if top_performers -%}
+### 领涨股 TOP5
+
+| 排名 | 股票 | 代码 | 涨跌幅 |
+|------|------|------|--------|
+{% for stock in top_performers -%}
+| {{ loop.index }} | {{ stock.name }} | {{ stock.symbol }} | {{ "%+.2f%%"|format(stock.change_pct) }} |
+{% endfor %}
+
+{% endif -%}
+{% if laggards -%}
+### 滞后股 TOP5
+
+| 排名 | 股票 | 代码 | 涨跌幅 |
+|------|------|------|--------|
+{% for stock in laggards -%}
+| {{ loop.index }} | {{ stock.name }} | {{ stock.symbol }} | {{ "%+.2f%%"|format(stock.change_pct) }} |
+{% endfor %}
+{% endif -%}
+
+## 💰 基本面评分
+
+{% set high_scores = fundamental_scores|selectattr('score', 'ge', 7)|list -%}
+{% if high_scores -%}
+### 优质标的（评分 >= 7）
+
+| 股票 | 代码 | 综合评分 |
+|------|------|----------|
+{% for stock in high_scores[:10] -%}
+| {{ stock.name }} | {{ stock.symbol }} | {{ stock.score }}/10 |
+{% endfor %}
+{% endif -%}
+
+---
+*数据来源：AKShare | 仅供参考，不构成投资建议*

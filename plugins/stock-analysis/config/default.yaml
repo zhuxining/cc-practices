@@ -1,0 +1,150 @@
+# Stock Analysis 技能配置文件
+
+# 数据源配置
+data_sources:
+  akshare:
+    enabled: true
+    timeout: 60
+    retry_times: 3
+    retry_delay: 2
+
+  longport:
+    enabled: true
+    timeout: 30
+    retry_times: 3
+    retry_delay: 2
+
+# 交易信号配置
+signals:
+  golden_cross:
+    fast_period: 5
+    slow_period: 20
+    strength: 8
+
+  death_cross:
+    fast_period: 5
+    slow_period: 20
+    strength: -8
+
+  macd_signal:
+    fast: 12
+    slow: 26
+    signal: 9
+    strength: 6
+
+  rsi_oversold:
+    period: 14
+    threshold: 30
+    strength: 7
+
+  rsi_overbought:
+    period: 14
+    threshold: 70
+    strength: -7
+
+  volume_breakout:
+    period: 20
+    multiplier: 1.5
+    strength: 7
+
+# 评分权重
+scoring:
+  technical:
+    trend: 0.4      # 趋势权重
+    momentum: 0.3   # 动量权重
+    volume: 0.3     # 成交量权重
+
+  fundamental:
+    valuation: 0.3  # 估值权重
+    growth: 0.4     # 成长权重
+    quality: 0.3    # 质量权重
+
+  overall:
+    technical: 0.6  # 技术面权重
+    fundamental: 0.4 # 基本面权重
+
+# 输出配置
+output:
+  default_dir: "output"
+  csv_encoding: "utf-8-sig"
+  float_precision: 2
+  date_format: "%Y-%m-%d %H:%M:%S"
+
+# A股市场配置
+market:
+  # 主要指数
+  indices:
+    - code: "000001"
+      name: "上证指数"
+      market: "SH"
+      akshare_code: "sh000001"
+    - code: "399001"
+      name: "深证成指"
+      market: "SZ"
+      akshare_code: "sz399001"
+    - code: "399006"
+      name: "创业板指"
+      market: "SZ"
+      akshare_code: "sz399006"
+    - code: "000688"
+      name: "科创50"
+      market: "SH"
+      akshare_code: "sh000688"
+
+  # 市场情绪权重
+  sentiment_weights:
+    breadth: 0.3        # 市场广度权重（涨跌比）
+    volume: 0.2         # 成交量权重
+    limit_up: 0.2       # 涨停比例权重
+    north_capital: 0.3  # 北向资金权重
+
+# 市场报告配置
+market_report:
+  include_sections:
+    - overview      # 指数概览
+    - sentiment     # 市场情绪
+    - hot_sectors   # 热点板块
+    - capital_flow  # 资金流向
+    - calendar      # 市场日历
+
+  hot_sectors_top_n: 5
+  sentiment_levels:
+    very_fearful: 2.0
+    fearful: 3.0
+    neutral: 4.0
+    greedy: 4.5
+    very_greedy: 5.0
+
+# 分组报告配置
+group_report:
+  include_sections:
+    - overview      # 组合概览
+    - signals       # 交易建议
+    - technical     # 技术面扫描
+    - fundamental   # 基本面评分
+    - sector_dist   # 行业分布
+    - adjustment    # 调整建议
+
+  buy_threshold: 7.0      # 建议买入阈值
+  sell_threshold: 3.0     # 建议卖出阈值
+  hold_threshold: 5.0     # 建议持有阈值
+
+# 板块配置
+sectors:
+  # 常见板块映射（AKShare 名称）
+  - name: "银行"
+    akshare_name: "银行"
+  - name: "半导体"
+    akshare_name: "半导体"
+  - name: "新能源"
+    akshare_name: "新能源"
+  - name: "人工智能"
+    akshare_name: "人工智能"
+  - name: "医药"
+    akshare_name: "医药"
+  - name: "消费电子"
+    akshare_name: "消费电子"
+  - name: "汽车"
+    akshare_name: "汽车"
+  - name: "白酒"
+    akshare_name: "白酒"

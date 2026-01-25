@@ -6,7 +6,7 @@
 # ]
 # ///
 
-"""LongPort 自选分组命令行管理工具。
+"""LongPort 自选分组命令行管理工具。.
 
 支持分组的增删改查及成员批量导出功能。
 
@@ -29,20 +29,24 @@ Examples:
     uv run longport_groups.py create --name "科技股" --symbols AAPL.US,MSFT.US
     uv run longport_groups.py update --id 4038104 --add-symbols 700.HK,9988.HK
     uv run longport_groups.py get-symbols --id 4038104 --output symbols.txt
+
 """
 
 import argparse
-from collections.abc import Iterator
-from contextlib import contextmanager
 import sys
+from contextlib import contextmanager
+from typing import TYPE_CHECKING
 
 from _output_helper import resolve_output_path
 from longport.openapi import Config, QuoteContext, SecuritiesUpdateMode
 
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
 
 @contextmanager
 def open_quote_ctx() -> Iterator[QuoteContext]:
-    """从 .env 初始化 QuoteContext 并自动关闭。"""
+    """从 .env 初始化 QuoteContext 并自动关闭。."""
     ctx = QuoteContext(Config.from_env())
     try:
         yield ctx
@@ -53,41 +57,38 @@ def open_quote_ctx() -> Iterator[QuoteContext]:
 
 
 def list_groups(args: argparse.Namespace) -> None:
-    """列出所有分组。"""
+    """列出所有分组。."""
     with open_quote_ctx() as ctx:
         groups = ctx.watchlist()
         if not groups:
-            print("无分组")
             return
-        print(f"{'ID':<8} {'Name':<30} {'Count':<10}")
-        print("-" * 50)
         for g in groups:
-            name = g.name[:28] if len(g.name) > 28 else g.name
-            print(f"{g.id:<8} {name:<30} {len(g.securities):<10}")
+            g.name[:28] if len(g.name) > 28 else g.name
 
 
 def create_group(args: argparse.Namespace) -> None:
-    """创建新分组。
+    """创建新分组。.
 
     Args:
         args: 包含 name 和可选 symbols 参数的命名空间
+
     """
     symbols = None
     if args.symbols:
         symbols = [s.strip() for s in args.symbols.split(",") if s.strip()]
 
     with open_quote_ctx() as ctx:
-        group_id = ctx.create_watchlist_group(name=args.name, securities=symbols)
+        ctx.create_watchlist_group(name=args.name, securities=symbols)
 
-    count = len(symbols) if symbols else 0
-    print(f"✓ 分组已创建: ID={group_id}, Name={args.name}, Count={count}")
+    len(symbols) if symbols else 0
 
 
 def update_group(args: argparse.Namespace) -> None:
-    """更新分组成员(增/删/替换)。
+    """更新分组成员(增/删/替换)。.
 
     Args:
         args: 包含 id 和操作参数的命名空间
+
     """
     # 确定更新模式
     mode = SecuritiesUpdateMode.Add
@@ -106,10 +107,6 @@ def update_group(args: argparse.Namespace) -> None:
         symbols = [s.strip() for s in args.replace_symbols.split(",") if s.strip()]
 
     if symbols is None:
-        print(
-            "✗ 错误: 需要 --add-symbols 或 --remove-symbols 或 --replace-symbols",
-            file=sys.stderr,
-        )
         sys.exit(1)
 
     with open_quote_ctx() as ctx:
@@ -118,62 +115,56 @@ def update_group(args: argparse.Namespace) -> None:
         updated = next((g for g in groups if g.id == args.id), None)
 
         if updated is None:
-            print(f"✗ 错误: 分组不存在 (ID={args.id})", file=sys.stderr)
             sys.exit(1)
         else:
-            print(
-                f"✓ 分组已更新: ID={args.id}, Name={updated.name}, Count={len(updated.securities)}"
-            )
+            pass
 
 
 def get_symbols(args: argparse.Namespace) -> None:
-    """导出分组成员列表。
+    """导出分组成员列表。.
 
     Args:
         args: 包含 id 和可选 output 参数的命名空间
+
     """
     with open_quote_ctx() as ctx:
         groups = ctx.watchlist()
         group = next((g for g in groups if g.id == args.id), None)
 
         if group is None:
-            print(f"✗ 错误: 分组不存在 (ID={args.id})", file=sys.stderr)
             sys.exit(1)
         else:
             symbols = [s.symbol for s in group.securities]
 
     if not symbols:
-        print("分组为空")
         return
 
     if args.output:
         output_path = resolve_output_path(args.output)
         output_path.write_text("\n".join(symbols) + "\n")
-        print(f"✓ 已保存: {output_path} ({len(symbols)} 个符号)")
     else:
-        print("\n".join(symbols))
+        pass
 
 
 def delete_group(args: argparse.Namespace) -> None:
-    """清空分组(替换为空列表)。
+    """清空分组(替换为空列表)。.
 
     Args:
         args: 包含 id 参数的命名空间
+
     """
     with open_quote_ctx() as ctx:
         groups = ctx.watchlist()
         group = next((g for g in groups if g.id == args.id), None)
 
         if group is None:
-            print(f"✗ 错误: 分组不存在 (ID={args.id})", file=sys.stderr)
             sys.exit(1)
         else:
             ctx.update_watchlist_group(args.id, securities=[], mode=SecuritiesUpdateMode.Replace)
-            print(f"✓ 分组已清空: ID={args.id}, Name={group.name}")
 
 
 def main() -> None:
-    """主入口函数。"""
+    """主入口函数。."""
     parser = argparse.ArgumentParser(
         description="LongPort 自选分组管理工具",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -226,7 +217,6 @@ def main() -> None:
     if handler:
         handler(args)
     else:
-        print(f"✗ 未知命令: {args.command}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -234,8 +224,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n✗ 用户中断", file=sys.stderr)
         sys.exit(130)
-    except Exception as e:
-        print(f"✗ 未预期错误: {e}", file=sys.stderr)
+    except Exception:
         sys.exit(1)

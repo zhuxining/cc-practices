@@ -1,0 +1,81 @@
+# 技术指标参数配置
+
+# 移动平均线
+indicators:
+  ma:
+    periods: [5, 10, 20, 60]
+
+  # MACD 指标
+  macd:
+    fast: 12
+    slow: 26
+    signal: 9
+
+  # RSI 指标
+  rsi:
+    periods: [7, 14]
+    oversold: 30
+    overbought: 70
+    extreme_oversold: 20
+    extreme_overbought: 80
+
+  # KDJ 指标
+  kdj:
+    k: 9
+    d: 3
+    j: 3
+    oversold: 20
+    overbought: 80
+
+  # 布林带
+  bollinger:
+    period: 20
+    std_dev: 2.0
+    std_dev_upper: 2.0
+    std_dev_lower: 2.0
+
+  # ATR 平均真实波幅
+  atr:
+    period: 14
+
+  # 成交量均线
+  volume_ma:
+    periods: [5, 10, 20]
+
+  # OBV 能量潮
+  obv:
+    enabled: true
+
+# 技术信号阈值
+signals:
+  # 金叉/死叉
+  cross:
+    confirmation_periods: 1  # 确认周期数
+
+  # 突破
+  breakout:
+    volume_multiplier: 1.5   # 成交量倍数
+    price_change_pct: 3.0    # 价格变化百分比
+
+  # 超卖/超买
+  oversold:
+    rsi_threshold: 30
+    kdj_k_threshold: 20
+    confirmation_days: 2
+
+  overbought:
+    rsi_threshold: 70
+    kdj_k_threshold: 80
+    confirmation_days: 2
+
+# 形态识别
+patterns:
+  enabled:
+    - doji         # 十字星
+    - hammer       # 锤子线
+    - morning_star # 早晨之星
+    - evening_star # 黄昏之星
+    - engulfing    # 吞没形态
+
+  # 形态确认要求
+  confirmation_required: true

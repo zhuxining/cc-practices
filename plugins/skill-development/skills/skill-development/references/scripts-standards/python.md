@@ -83,6 +83,32 @@ def process_data(data: list, threshold: float) -> dict | None:
 
 **Rules:** One-line for simple functions, multi-line (summary + Args + Returns) for complex ones. Focus on **what** not **how**.
 
+## Import Standards
+
+**Rules:**
+
+1. Always use **absolute imports** (full module paths)
+2. Never use relative imports (`.xxx` or `..xxx`)
+
+**Example:**
+
+```python
+# ❌ Bad - relative imports
+from .utils import helper
+from ..config import settings
+
+# ✓ Good - absolute imports
+from core.utils import helper
+from core.config import settings
+```
+
+**Why absolute imports?**
+
+- Clear and explicit module origins
+- Avoids confusion when code is refactored/moved
+- Better IDE/tooling support
+- Easier to read and maintain
+
 ## Error Handling
 
 **Rules:**
@@ -200,6 +226,7 @@ OUTPUT_DIR = Path.cwd() / "results"
 
 - [ ] Function docstrings for complex functions
 - [ ] Type hints for parameters and returns
+- [ ] Absolute imports only (no relative imports)
 - [ ] Consistent output format (`✓`/`✗`)
 - [ ] Exit codes (0=success, 1=error)
 - [ ] Dry-run mode when applicable

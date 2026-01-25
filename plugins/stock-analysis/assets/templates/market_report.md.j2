@@ -1,0 +1,43 @@
+# A股市场日报
+
+**生成时间**：{{ timestamp }}
+
+## 📊 市场概览
+
+| 指数 | 点位 | 涨跌 |
+|------|------|------|
+{% for idx in indices -%}
+| {{ idx.name }} | {{ "%.2f"|format(idx.price) }} | {{ "%+.2f%%"|format(idx.change_pct) }} {{ "↑" if idx.change_pct > 0 else "↓" }} |
+{% endfor %}
+
+**总成交额**：{{ "%.0f"|format(statistics.total_turnover / 100000000) }} 亿
+**北向资金**：{{ "%+.0f"|format(north_capital.north_flow) }} 亿（{{ "净流入" if north_capital.north_flow > 0 else "净流出" }}）
+
+## 🎭 市场情绪
+
+| 指标 | 数值 | 状态 |
+|------|------|------|
+| 涨跌比 | {{ sentiment.breadth_ratio }} | {{ "偏多" if sentiment.breadth_ratio >= 1 else "偏空" }} |
+| 涨停/跌停 | {{ statistics.limit_up_count }}/{{ statistics.limit_down_count }} | {{ "活跃" if statistics.limit_up_count > 50 else "一般" }} |
+| 情绪评分 | {{ sentiment.overall_score }}/5 | {{ sentiment.status }} |
+
+## 🔥 热点板块 TOP{{ hot_sectors|length }}
+
+| 排名 | 板块 | 涨跌幅 | 净流入 | 领涨股 |
+|------|------|--------|--------|--------|
+{% for sector in hot_sectors -%}
+| {{ sector.rank }} | {{ sector.sector_name }} | {{ "%+.2f%%"|format(sector.change_pct) }} | {{ "%+.0f亿"|format(sector.flow_net) if sector.flow_net else "-" }} | {{ sector.leading_stocks|map(attribute='name')|join(', ') if sector.leading_stocks else '-' }} |
+{% endfor %}
+
+{% if flow_ranking -%}
+## 💰 资金流向排行
+
+| 板块 | 主力净流入 | 解读 |
+|------|------------|------|
+{% for item in flow_ranking[:5] -%}
+| {{ item.sector_name }} | {{ "%+.0f亿"|format(item.flow_net) }} | {{ "持续流入" if item.flow_net > 50 else "逢低吸纳" if item.flow_net > 0 else "资金流出" }} |
+{% endfor %}
+{% endif -%}
+
+---
+*数据来源：AKShare | 仅供参考，不构成投资建议*
