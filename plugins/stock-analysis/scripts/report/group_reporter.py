@@ -36,19 +36,27 @@ class GroupReporter:
 
         self.analyzer = GroupAnalyzer(provider, config)
 
-    def generate_data(self, symbols: list[str], group_name: str | None = None) -> dict:
+    def generate_data(self, symbols: list[str], group_name: str | None = None, enhanced: bool = False) -> dict:
         """生成报告数据.
 
         Args:
             symbols: 股票代码列表
             group_name: 分组名称
+            enhanced: 是否生成增强报告（包含同行比较）
 
         Returns:
             报告数据字典
 
         """
-        # 分析分组
-        analysis = self.analyzer.analyze_group(symbols, group_name)
+        if enhanced:
+            # 增强版报告（包含同行比较）
+            analysis = self.analyzer.analyze_group_with_peer_comparison(symbols, group_name)
+            # 添加新闻汇总
+            news_summary = self.analyzer.get_group_news_summary(symbols)
+            analysis["news_summary"] = news_summary
+        else:
+            # 标准版报告
+            analysis = self.analyzer.analyze_group(symbols, group_name)
 
         # 添加时间戳
         analysis["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -196,6 +204,54 @@ class GroupReporter:
                 lines.append("|------|------|----------|")
                 for stock in high_scores[:10]:
                     lines.append(f"| {stock['name']} | {stock['symbol']} | {stock['score']}/10 |")
+
+        # 同行比较分析（如果有）
+        peer_comparison = data.get("peer_comparison", {})
+        if peer_comparison:
+            lines.append("\n## 🔄 同行比较分析\n")
+
+            lines.append("### 估值比较（同行 PE 百分位）\n")
+            lines.append("| 股票 | 代码 | PE | 行业PE | 百分位 | 估值 |")
+            lines.append("|------|------|----|----|--------|------|")
+
+            for symbol, comp_data in peer_comparison.items():
+                val = comp_data.get("valuation", {})
+                if not val.get("error"):
+                    lines.append(
+                        f"| {val.get('name', '')} | {symbol} | {val.get('pe', 0):.1f} | {val.get('industry_pe', 0):.1f} | {val.get('pe_percentile', 0):.0f}% | {val.get('valuation', '')} |",
+                    )
+
+            lines.append("\n### 成长性比较\n")
+            lines.append("| 股票 | 代码 | 营收增长 | 利润增长 | 行业平均 | 等级 |")
+            lines.append("|------|------|----------|----------|----------|------|")
+
+            for symbol, comp_data in peer_comparison.items():
+                growth = comp_data.get("growth", {})
+                if not growth.get("error"):
+                    lines.append(
+                        f"| {growth.get('name', '')} | {symbol} | {growth.get('revenue_growth', 0):.1f}% | {growth.get('profit_growth', 0):.1f}% | {growth.get('industry_revenue_growth', 0):.1f}% | {growth.get('growth_level', '')} |",
+                    )
+
+        # 新闻情绪（如果有）
+        news_summary = data.get("news_summary", {})
+        if news_summary and not news_summary.get("error"):
+            lines.append("\n## 📰 新闻情绪\n")
+
+            sentiment = news_summary.get("overall_sentiment", "")
+            lines.append(f"**整体情绪**：{sentiment}\n")
+
+            by_stock = news_summary.get("by_stock", {})
+            if by_stock:
+                lines.append("### 个股情绪\n")
+                lines.append("| 股票 | 情绪 | 正面 | 负面 |")
+                lines.append("|------|------|------|------|")
+
+                for symbol, sentiment_data in by_stock.items():
+                    if not sentiment_data.get("error"):
+                        sentiment_text = sentiment_data.get("sentiment_text", "")
+                        positive = sentiment_data.get("positive_count", 0)
+                        negative = sentiment_data.get("negative_count", 0)
+                        lines.append(f"| {symbol} | {sentiment_text} | {positive} | {negative} |")
 
         return "\n".join(lines)
 

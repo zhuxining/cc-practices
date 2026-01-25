@@ -170,7 +170,7 @@ class AKShareProvider:
 
         except Exception as e:
             msg = f"获取指数历史数据失败: {e}"
-            raise RuntimeError(msg)
+            raise RuntimeError(msg) from e
 
     # ==================== 市场统计 ====================
 
@@ -218,7 +218,7 @@ class AKShareProvider:
 
         except Exception as e:
             msg = f"获取市场统计失败: {e}"
-            raise RuntimeError(msg)
+            raise RuntimeError(msg) from e
 
     # ==================== 板块数据 ====================
 
@@ -284,7 +284,7 @@ class AKShareProvider:
 
         except Exception as e:
             msg = f"获取板块排行失败: {e}"
-            raise RuntimeError(msg)
+            raise RuntimeError(msg) from e
 
     def get_sector_constituents(self, sector_name: str, top_n: int = 20) -> pd.DataFrame:
         """获取板块成分股.
@@ -334,7 +334,7 @@ class AKShareProvider:
 
         except Exception as e:
             msg = f"获取板块成分股失败: {e}"
-            raise RuntimeError(msg)
+            raise RuntimeError(msg) from e
 
     def get_sector_capital_flow(self) -> pd.DataFrame:
         """获取板块资金流向.
@@ -378,7 +378,7 @@ class AKShareProvider:
 
         except Exception as e:
             msg = f"获取板块资金流向失败: {e}"
-            raise RuntimeError(msg)
+            raise RuntimeError(msg) from e
 
     # ==================== 个股数据 ====================
 
@@ -431,7 +431,7 @@ class AKShareProvider:
 
         except Exception as e:
             msg = f"获取个股行情失败: {e}"
-            raise RuntimeError(msg)
+            raise RuntimeError(msg) from e
 
     def get_stock_candlesticks(
         self,
@@ -502,7 +502,7 @@ class AKShareProvider:
 
         except Exception as e:
             msg = f"获取 K线数据失败: {e}"
-            raise RuntimeError(msg)
+            raise RuntimeError(msg) from e
 
     # ==================== 财务数据 ====================
 
@@ -542,7 +542,235 @@ class AKShareProvider:
 
         except Exception as e:
             msg = f"获取财务摘要失败: {e}"
-            raise RuntimeError(msg)
+            raise RuntimeError(msg) from e
+
+    def get_stock_growth_comparison(self, symbol: str) -> pd.DataFrame:
+        """获取同行成长性比较.
+
+        Args:
+            symbol: 股票代码
+
+        Returns:
+            DataFrame with columns:
+            - name: 股票名称
+            - code: 股票代码
+            - revenue_growth: 营收增长率
+            - profit_growth: 利润增长率
+            - 其他成长性指标
+
+        """
+        try:
+            df = self._fetch_with_retry(ak.stock_zh_growth_comparison_em, symbol=symbol)
+
+            # 重命名列
+            df = df.rename(
+                columns={
+                    "名称": "name",
+                    "代码": "code",
+                    "营收增长率": "revenue_growth",
+                    "净利润增长率": "profit_growth",
+                    "ROE": "roe",
+                },
+            )
+
+            # 确保数值类型
+            numeric_cols = ["revenue_growth", "profit_growth", "roe"]
+            for col in numeric_cols:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
+
+            return df
+
+        except Exception as e:
+            msg = f"获取同行成长性比较失败: {e}"
+            raise RuntimeError(msg) from e
+
+    def get_stock_valuation_comparison(self, symbol: str) -> pd.DataFrame:
+        """获取同行估值比较.
+
+        Args:
+            symbol: 股票代码
+
+        Returns:
+            DataFrame with columns:
+            - name: 股票名称
+            - code: 股票代码
+            - pe: 市盈率
+            - pb: 市净率
+            - ps: 市销率
+            - market_cap: 总市值
+
+        """
+        try:
+            df = self._fetch_with_retry(ak.stock_zh_valuation_comparison_em, symbol=symbol)
+
+            # 重命名列
+            df = df.rename(
+                columns={
+                    "名称": "name",
+                    "代码": "code",
+                    "市盈率-动态": "pe",
+                    "市净率": "pb",
+                    "市销率": "ps",
+                    "总市值": "market_cap",
+                },
+            )
+
+            # 确保数值类型
+            numeric_cols = ["pe", "pb", "ps", "market_cap"]
+            for col in numeric_cols:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
+
+            return df
+
+        except Exception as e:
+            msg = f"获取同行估值比较失败: {e}"
+            raise RuntimeError(msg) from e
+
+    def get_stock_dupont_comparison(self, symbol: str) -> pd.DataFrame:
+        """获取同行杜邦分析比较.
+
+        Args:
+            symbol: 股票代码
+
+        Returns:
+            DataFrame with columns:
+            - name: 股票名称
+            - code: 股票代码
+            - roe: 净资产收益率
+            - net_profit_margin: 销售净利率
+            - asset_turnover: 总资产周转率
+            - equity_multiplier: 权益乘数
+
+        """
+        try:
+            df = self._fetch_with_retry(ak.stock_zh_dupont_comparison_em, symbol=symbol)
+
+            # 重命名列
+            df = df.rename(
+                columns={
+                    "名称": "name",
+                    "代码": "code",
+                    "ROE": "roe",
+                    "销售净利率": "net_profit_margin",
+                    "总资产周转率": "asset_turnover",
+                    "权益乘数": "equity_multiplier",
+                },
+            )
+
+            # 确保数值类型
+            numeric_cols = ["roe", "net_profit_margin", "asset_turnover", "equity_multiplier"]
+            for col in numeric_cols:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
+
+            return df
+
+        except Exception as e:
+            msg = f"获取同行杜邦分析比较失败: {e}"
+            raise RuntimeError(msg) from e
+
+    def get_stock_business_composition(self, symbol: str) -> pd.DataFrame:
+        """获取主营构成.
+
+        Args:
+            symbol: 股票代码
+
+        Returns:
+            DataFrame with columns:
+            - product_name: 产品名称
+            - revenue: 收入
+            - revenue_ratio: 收入占比
+            - profit: 利润
+            - profit_ratio: 利润占比
+
+        """
+        try:
+            df = self._fetch_with_retry(ak.stock_zygc_em, symbol=symbol)
+
+            # 重命名列
+            df = df.rename(
+                columns={
+                    "主营构成": "product_name",
+                    "主营收入(元)": "revenue",
+                    "收入占比": "revenue_ratio",
+                    "主营利润(元)": "profit",
+                    "利润占比": "profit_ratio",
+                },
+            )
+
+            # 确保数值类型
+            numeric_cols = ["revenue", "revenue_ratio", "profit", "profit_ratio"]
+            for col in numeric_cols:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
+
+            return df
+
+        except Exception as e:
+            msg = f"获取主营构成失败: {e}"
+            raise RuntimeError(msg) from e
+
+    def get_market_comment(self) -> pd.DataFrame:
+        """获取千股千评.
+
+        Returns:
+            DataFrame with columns:
+            - date: 日期
+            - multi: 多空比例
+            - other indicators
+
+        """
+        try:
+            df = self._fetch_with_retry(ak.stock_comment_em)
+
+            # 确保数值类型
+            numeric_cols = df.select_dtypes(include=["number"]).columns
+            for col in numeric_cols:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+
+            return df
+
+        except Exception as e:
+            msg = f"获取千股千评失败: {e}"
+            raise RuntimeError(msg) from e
+
+    def get_stock_news(self, symbol: str, limit: int = 10) -> list[dict]:
+        """获取个股新闻.
+
+        Args:
+            symbol: 股票代码
+            limit: 返回条数
+
+        Returns:
+            新闻列表, 每个元素包含:
+            - title: 新闻标题
+            - time: 发布时间
+            - source: 来源
+
+        """
+        try:
+            df = self._fetch_with_retry(ak.stock_news_em, symbol=symbol)
+
+            # 取前 limit 条
+            df = df.head(limit).copy()
+
+            # 转换为字典列表
+            news_list = []
+            for _, row in df.iterrows():
+                news_list.append({
+                    "title": row.get("新闻标题", ""),
+                    "time": row.get("发布时间", ""),
+                    "source": row.get("文章来源", ""),
+                    "url": row.get("新闻链接", ""),
+                })
+
+            return news_list
+
+        except Exception as e:
+            msg = f"获取个股新闻失败: {e}"
+            raise RuntimeError(msg) from e
 
     def _parse_number(self, value: str | None) -> float | None:
         """解析数字字符串."""
@@ -552,5 +780,5 @@ class AKShareProvider:
             # 移除单位
             value = str(value).replace("万", "").replace("亿", "").replace("%", "").strip()
             return float(value)
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             return None

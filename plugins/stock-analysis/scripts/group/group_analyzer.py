@@ -11,7 +11,9 @@
 
 import pathlib
 
-from fundamental.financial_analyzer import FinancialAnalyzer
+from fundamental.dupont_analyzer import DuPontAnalyzer
+from fundamental.financial_analyzer import FinancialAnalyzer, GrowthAnalyzer, ValuationAnalyzer
+from fundamental.news_analyzer import NewsAnalyzer
 
 from group.scoring_engine import ScoringEngine
 from group.signal_generator import TradingSignalGenerator
@@ -33,6 +35,10 @@ class GroupAnalyzer:
         self.signal_gen = TradingSignalGenerator(provider, config)
         self.scoring = ScoringEngine(provider, config)
         self.financial = FinancialAnalyzer(provider)
+        self.growth = GrowthAnalyzer(provider)
+        self.valuation = ValuationAnalyzer(provider)
+        self.dupont = DuPontAnalyzer(provider)
+        self.news = NewsAnalyzer(provider)
 
     def analyze_group(self, symbols: list[str], group_name: str | None = None) -> dict:
         """分析整个分组.
@@ -283,3 +289,158 @@ class GroupAnalyzer:
 
         except Exception:
             return []
+
+    def analyze_stock_comprehensive(self, symbol: str) -> dict:
+        """综合分析单只股票.
+
+        Args:
+            symbol: 股票代码
+
+        Returns:
+            综合分析结果
+
+        """
+        result = {
+            "symbol": symbol,
+            "basic": {},
+            "peer_comparison": {},
+            "business_composition": {},
+            "dupont_analysis": {},
+            "news": {},
+        }
+
+        # 获取基本信息
+        try:
+            spot = self.provider.get_stock_spot(symbol)
+            result["basic"] = {
+                "name": spot.get("name", ""),
+                "price": spot.get("price"),
+                "change_pct": spot.get("change_pct"),
+            }
+        except Exception as e:
+            result["basic"] = {"error": str(e)}
+
+        # 同行估值比较
+        try:
+            valuation_comp = self.valuation.get_peer_valuation_comparison(symbol)
+            result["peer_comparison"]["valuation"] = valuation_comp
+        except Exception as e:
+            result["peer_comparison"]["valuation"] = {"error": str(e)}
+
+        # 同行成长性比较
+        try:
+            growth_comp = self.growth.get_peer_growth_comparison(symbol)
+            result["peer_comparison"]["growth"] = growth_comp
+        except Exception as e:
+            result["peer_comparison"]["growth"] = {"error": str(e)}
+
+        # 主营构成分析
+        try:
+            business = self.financial.get_business_composition(symbol)
+            result["business_composition"] = business
+        except Exception as e:
+            result["business_composition"] = {"error": str(e)}
+
+        # 杜邦分析
+        try:
+            dupont = self.dupont.analyze_dupont(symbol)
+            result["dupont_analysis"] = dupont
+        except Exception as e:
+            result["dupont_analysis"] = {"error": str(e)}
+
+        # 获取新闻
+        try:
+            news = self.news.get_stock_news(symbol, limit=5)
+            news_sentiment = self.news.analyze_news_sentiment(symbol, limit=5)
+            result["news"] = {
+                "latest": news.get("latest_news"),
+                "sentiment": news_sentiment,
+            }
+        except Exception as e:
+            result["news"] = {"error": str(e)}
+
+        return result
+
+    def analyze_group_with_peer_comparison(self, symbols: list[str], group_name: str | None = None) -> dict:
+        """分析分组并包含同行比较.
+
+        Args:
+            symbols: 股票代码列表
+            group_name: 分组名称
+
+        Returns:
+            增强的分组分析结果
+
+        """
+        # 基础分组分析
+        base_result = self.analyze_group(symbols, group_name)
+
+        # 添加同行比较数据
+        peer_data = {}
+        for symbol in symbols:
+            try:
+                # 估值比较
+                valuation = self.valuation.get_peer_valuation_comparison(symbol)
+                # 成长性比较
+                growth = self.growth.get_peer_growth_comparison(symbol)
+                # 杜邦分析
+                dupont = self.dupont.analyze_dupont(symbol)
+
+                peer_data[symbol] = {
+                    "valuation": valuation,
+                    "growth": growth,
+                    "dupont": dupont,
+                }
+            except Exception:
+                continue
+
+        base_result["peer_comparison"] = peer_data
+
+        return base_result
+
+    def get_group_news_summary(self, symbols: list[str], limit_per_stock: int = 3) -> dict:
+        """获取分组股票新闻汇总.
+
+        Args:
+            symbols: 股票代码列表
+            limit_per_stock: 每只股票新闻条数
+
+        Returns:
+            新闻汇总结果
+
+        """
+        all_news = {}
+        sentiment_summary = {"positive": 0, "negative": 0, "neutral": 0}
+
+        for symbol in symbols:
+            try:
+                sentiment = self.news.analyze_news_sentiment(symbol, limit=limit_per_stock)
+                all_news[symbol] = sentiment
+
+                # 汇总情绪
+                if not sentiment.get("error"):
+                    sentiment_summary[sentiment.get("sentiment", "neutral")] += 1
+            except Exception:
+                continue
+
+        return {
+            "by_stock": all_news,
+            "sentiment_summary": sentiment_summary,
+            "overall_sentiment": self._get_overall_sentiment(sentiment_summary),
+        }
+
+    def _get_overall_sentiment(self, summary: dict) -> str:
+        """获取整体情绪."""
+        positive = summary.get("positive", 0)
+        negative = summary.get("negative", 0)
+        neutral = summary.get("neutral", 0)
+
+        total = positive + negative + neutral
+        if total == 0:
+            return "数据不足"
+
+        if positive > negative * 1.5:
+            return "整体偏正面"
+        if negative > positive * 1.5:
+            return "整体偏负面"
+        return "整体中性"

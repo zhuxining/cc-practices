@@ -71,9 +71,10 @@ CLAUDE.md 是 Agent 会话的"Memory"，会在每次对话开始时自动加载�
 ```text
 .claude/
 ├── CLAUDE.md (200 字)
-│   ├── Language: 中文
-│   ├── Tech Stack: Python + FastAPI
-│   └── 代码风格: @skills/python-style.md
+├── rules/
+│   ├── code-style.md   # Code style guidelines
+│   ├── testing.md      # Testing conventions
+│   └── security.md     # Security requirements
 └── skills/
     ├── python-style.md (800 字)
     ├── testing-standards.md (1200 字)

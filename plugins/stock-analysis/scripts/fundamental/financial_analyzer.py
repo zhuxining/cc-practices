@@ -53,6 +53,65 @@ class FinancialAnalyzer:
         except Exception as e:
             return {"symbol": symbol, "error": str(e)}
 
+    def get_business_composition(self, symbol: str) -> dict:
+        """获取主营构成分析.
+
+        Args:
+            symbol: 股票代码
+
+        Returns:
+            主营构成分析结果
+
+        """
+        try:
+            df = self.provider.get_stock_business_composition(symbol)
+
+            if df.empty:
+                return {"symbol": symbol, "error": "无主营构成数据"}
+
+            # 获取股票基本信息
+            spot = self.provider.get_stock_spot(symbol)
+
+            # 解析业务构成
+            products = []
+            for _, row in df.iterrows():
+                products.append(
+                    {
+                        "name": row.get("product_name", ""),
+                        "revenue": row.get("revenue"),
+                        "revenue_ratio": row.get("revenue_ratio"),
+                        "profit": row.get("profit"),
+                        "profit_ratio": row.get("profit_ratio"),
+                    }
+                )
+
+            # 计算集中度（前三大业务占比）
+            top_3_ratio = 0
+            if len(products) >= 3:
+                top_3_ratio = sum(
+                    [p.get("revenue_ratio", 0) or 0 for p in products[:3]]
+                )
+
+            return {
+                "symbol": symbol,
+                "name": spot.get("name", ""),
+                "products": products,
+                "product_count": len(products),
+                "top_3_concentration": round(top_3_ratio, 2),
+                "analysis": self._analyze_concentration(top_3_ratio),
+            }
+
+        except Exception as e:
+            return {"symbol": symbol, "error": str(e)}
+
+    def _analyze_concentration(self, concentration: float) -> str:
+        """分析业务集中度."""
+        if concentration > 0.8:
+            return "高度集中，单一业务风险较高"
+        if concentration > 0.5:
+            return "适度集中，业务相对专注"
+        return "多元化布局，业务分布广泛"
+
     def analyze_valuation(self, symbol: str, industry_pe: float | None = None) -> dict:
         """分析估值水平.
 
@@ -189,6 +248,62 @@ class ValuationAnalyzer:
             else "neutral",
         }
 
+    def get_peer_valuation_comparison(self, symbol: str) -> dict:
+        """获取同行估值比较（使用 AKShare）.
+
+        Args:
+            symbol: 股票代码
+
+        Returns:
+            同行估值比较结果
+
+        """
+        try:
+            df = self.provider.get_stock_valuation_comparison(symbol)
+
+            if df.empty:
+                return {"symbol": symbol, "error": "无同行估值数据"}
+
+            # 找到目标股票
+            target = df[df["code"] == symbol]
+
+            if target.empty:
+                return {"symbol": symbol, "error": "未在同行数据中找到"}
+
+            target_row = target.iloc[0]
+
+            # 计算行业平均值
+            industry_pe = df["pe"].mean()
+            industry_pb = df["pb"].mean()
+
+            # PE 百分位
+            pe_sorted = df["pe"].dropna().sort_values().tolist()
+            pe_percentile = (
+                pe_sorted.index(target_row["pe"]) / len(pe_sorted) * 100
+                if target_row["pe"] in pe_sorted
+                else None
+            )
+
+            return {
+                "symbol": symbol,
+                "name": target_row.get("name", ""),
+                "pe": target_row.get("pe"),
+                "pb": target_row.get("pb"),
+                "ps": target_row.get("ps"),
+                "industry_pe": round(industry_pe, 2),
+                "industry_pb": round(industry_pb, 2),
+                "peer_count": len(df),
+                "pe_percentile": round(pe_percentile, 1) if pe_percentile else None,
+                "valuation": "undervalued"
+                if target_row.get("pe") and target_row["pe"] < industry_pe * 0.8
+                else "overvalued"
+                if target_row.get("pe") and target_row["pe"] > industry_pe * 1.2
+                else "neutral",
+            }
+
+        except Exception as e:
+            return {"symbol": symbol, "error": str(e)}
+
 
 class GrowthAnalyzer:
     """成长性分析器."""
@@ -220,3 +335,76 @@ class GrowthAnalyzer:
             "profit_growth": None,
             "note": "成长性分析需要更详细的财报数据",
         }
+
+    def get_peer_growth_comparison(self, symbol: str) -> dict:
+        """获取同行成长性比较（使用 AKShare）.
+
+        Args:
+            symbol: 股票代码
+
+        Returns:
+            同行成长性比较结果
+
+        """
+        try:
+            df = self.provider.get_stock_growth_comparison(symbol)
+
+            if df.empty:
+                return {"symbol": symbol, "error": "无同行成长性数据"}
+
+            # 找到目标股票
+            target = df[df["code"] == symbol]
+
+            if target.empty:
+                return {"symbol": symbol, "error": "未在同行数据中找到"}
+
+            target_row = target.iloc[0]
+
+            # 计算行业平均值
+            industry_revenue_growth = df["revenue_growth"].mean()
+            industry_profit_growth = df["profit_growth"].mean()
+
+            # 营收增长率百分位
+            revenue_sorted = df["revenue_growth"].dropna().sort_values().tolist()
+            revenue_percentile = (
+                revenue_sorted.index(target_row["revenue_growth"]) / len(revenue_sorted) * 100
+                if target_row["revenue_growth"] in revenue_sorted
+                else None
+            )
+
+            # 利润增长率百分位
+            profit_sorted = df["profit_growth"].dropna().sort_values().tolist()
+            profit_percentile = (
+                profit_sorted.index(target_row["profit_growth"]) / len(profit_sorted) * 100
+                if target_row["profit_growth"] in profit_sorted
+                else None
+            )
+
+            # 成长性等级
+            growth_level = "high"
+            if target_row.get("revenue_growth") and target_row.get("profit_growth"):
+                avg_growth = (target_row["revenue_growth"] + target_row["profit_growth"]) / 2
+                industry_avg = (industry_revenue_growth + industry_profit_growth) / 2
+                if avg_growth > industry_avg * 1.2:
+                    growth_level = "high"
+                elif avg_growth < industry_avg * 0.8:
+                    growth_level = "low"
+                else:
+                    growth_level = "medium"
+
+            return {
+                "symbol": symbol,
+                "name": target_row.get("name", ""),
+                "revenue_growth": target_row.get("revenue_growth"),
+                "profit_growth": target_row.get("profit_growth"),
+                "roe": target_row.get("roe"),
+                "industry_revenue_growth": round(industry_revenue_growth, 2),
+                "industry_profit_growth": round(industry_profit_growth, 2),
+                "peer_count": len(df),
+                "revenue_percentile": round(revenue_percentile, 1) if revenue_percentile else None,
+                "profit_percentile": round(profit_percentile, 1) if profit_percentile else None,
+                "growth_level": growth_level,
+            }
+
+        except Exception as e:
+            return {"symbol": symbol, "error": str(e)}

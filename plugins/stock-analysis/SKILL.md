@@ -48,6 +48,9 @@ stock-analysis 提供两种核心报告能力：
 - 估值水平分析（PE、PB）
 - 成长性评估
 - 财务健康度检查
+- **同行比较分析**（估值、成长性、杜邦分析）
+- **主营构成分析**（业务收入分布）
+- **新闻情绪分析**（个股最新资讯）
 
 **组合分析**
 
@@ -204,8 +207,27 @@ group_report:
 
 ## 数据来源
 
-- **AKShare**：A股主要数据源（指数、板块、资金流向、财务数据）
-- **LongPort**：保留原有港股/美股能力
+### AKShare 数据接口
+
+stock-analysis 使用以下 AKShare 接口获取 A股数据：
+
+| 功能 | AKShare 方法 | 说明 |
+|------|-------------|------|
+| 指数行情 | `stock_zh_index_spot_em` | 主要指数实时数据 |
+| 市场统计 | `stock_zh_a_spot_em` | 全市场涨跌统计 |
+| 板块排行 | `stock_board_industry_name_em` | 行业板块涨跌幅 |
+| 板块成分股 | `stock_board_industry_cons_em` | 板块内股票列表 |
+| 资金流向 | `stock_sector_fund_flow_rank` | 板块资金流向 |
+| 同行成长性比较 | `stock_zh_growth_comparison_em` | 营收/利润增长率对比 |
+| 同行估值比较 | `stock_zh_valuation_comparison_em` | PE/PB/PS 对比 |
+| 同行杜邦分析 | `stock_zh_dupont_comparison_em` | ROE 分解对比 |
+| 主营构成 | `stock_zygc_em` | 业务收入分布 |
+| 千股千评 | `stock_comment_em` | 市场情绪参考 |
+| 个股新闻 | `stock_news_em` | 最新资讯 |
+
+### LongPort
+
+- **港股/美股数据**：保留原有 LongPort 能力，支持跨市场分析
 
 ## 快速开始
 

@@ -93,18 +93,25 @@ class ScoringEngine:
         score = 5.0
 
         # 检查短期是否在长期之上
-        if "ma_5" in df.columns and "ma_20" in df.columns:
-            if pd.notna(latest["ma_5"]) and pd.notna(latest["ma_20"]):
-                if latest["ma_5"] > latest["ma_20"]:
-                    score += 1.0
-                else:
-                    score -= 1.0
+        if (
+            "ma_5" in df.columns
+            and "ma_20" in df.columns
+            and pd.notna(latest["ma_5"])
+            and pd.notna(latest["ma_20"])
+        ):
+            if latest["ma_5"] > latest["ma_20"]:
+                score += 1.0
+            else:
+                score -= 1.0
 
         # 检查价格相对于 MA 的位置
-        if "ma_20" in df.columns:
-            if pd.notna(latest["close"]) and pd.notna(latest["ma_20"]):
-                if latest["close"] > latest["ma_20"]:
-                    score += 0.5
+        if (
+            "ma_20" in df.columns
+            and pd.notna(latest["close"])
+            and pd.notna(latest["ma_20"])
+            and latest["close"] > latest["ma_20"]
+        ):
+            score += 0.5
 
         # 检查趋势方向（最近10天）
         recent = df.tail(10)
