@@ -1,0 +1,9 @@
+{
+  "name": "planning",
+  "description": "计划编写与执行工作流",
+  "version": "1.0.0",
+  "author": {
+    "name": "zhuxining"
+  },
+  "license": "MIT"
+}
