@@ -116,6 +116,27 @@
                 "task",
                 "workflow"
             ]
+        },
+        {
+            "name": "screenshot",
+            "source": "./plugins/screenshot",
+            "description": "macOS 截屏工具，支持全屏、区域、窗口截图并自动读取分析",
+            "version": "1.0.0",
+            "author": {
+                "name": "zhuxining"
+            },
+            "license": "MIT",
+            "category": "tools",
+            "keywords": [
+                "screenshot",
+                "macos",
+                "screen-capture"
+            ],
+            "tags": [
+                "screenshot",
+                "macos",
+                "utility"
+            ]
         }
     ]
 }
