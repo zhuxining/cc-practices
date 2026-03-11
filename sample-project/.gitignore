@@ -1,6 +1,0 @@
-# MacOS
-.DS_Store
-
-# Env
-.env
-.env.prod
