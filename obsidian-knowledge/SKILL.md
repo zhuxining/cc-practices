@@ -17,7 +17,7 @@ obsidian read "AGENTS.md" vault=MyObsidian
 
 AGENTS.md 是你和用户共同遵守的规范源，包含目录结构、标签体系、frontmatter 标准、链接规范等。理解规范后再执行操作。
 
-## CLI Usage 
+## CLI Usage
 
 所有操作通过 `obsidian` CLI + `vault=MyObsidian` 参数：
 
@@ -26,7 +26,8 @@ obsidian read "path/to/note" vault=MyObsidian        # 读取笔记
 obsidian create "path/to/note" vault=MyObsidian       # 创建笔记
 obsidian search "keyword" vault=MyObsidian            # 搜索
 ```
-可参考 `obsidian-cli` skill 获取更多命令细节。
+
+**优先级原则**：优先使用 `obsidian-cli` 完成所有 vault 操作，而不是文件编辑工具（Read/Write/Edit）。若某个操作不确定如何用 CLI 实现，先委托 **obsidian-cli** skill 获取更多命令细节；确认 CLI 确实无法完成目标后，再考虑使用文件编辑工具。
 
 ## Roles
 
