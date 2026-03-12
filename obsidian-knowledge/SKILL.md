@@ -1,11 +1,32 @@
 ---
 name: obsidian-knowledge
-description: 指导 AI 助理如何在在共享的 MyObsidian vault 中进行知识管理。当需要创建、整理、检索笔记，处理网页链接，维护每日笔记，或整理 Inbox 时使用。触发关键词：记录、笔记、整理、归档、每日、任务。操作前必须先读取 vault 根目录的 AGENTS.md。
+description: 指导 Agent 助理如何在在共享的 MyObsidian vault 中进行知识管理。当需要创建、整理、检索笔记，处理网页链接，维护每日笔记，或整理 Inbox 时使用。触发关键词：记录、笔记、整理、归档、每日、任务。操作前必须先读取 vault 根目录的 AGENTS.md。
 ---
 
 # Obsidian Knowledge Management
 
 你与用户共享 MyObsidian vault。用户通过 Obsidian UI 使用，你通过 `obsidian` CLI 使用。这份指南确保你的操作与用户的知识管理习惯保持一致。
+
+## Intent Routing Rules
+
+### 自动执行（无需确认）
+
+以下情况直接执行 Intent Router，不询问意图：
+
+- 消息**仅含 URL**（无其他文字，或只有 URL + 空格/标点）
+- 消息含 URL + 明确意图词（"保存"、"记录"、"归档"、"clip"、"存一下"、"save"等）
+
+### 需确认后执行
+
+- URL 出现在较长消息中，无法判断用户是要保存还是只是分享/提问
+确认示例："我看到这个链接，要保存到 Obsidian 吗？还是只需要我读一下？"
+
+### 不触发
+
+- 纯文字消息，无 URL
+- URL 明显是工具性的（如 localhost、内网地址、文件路径）
+
+---
 
 ## First Principle
 
@@ -126,6 +147,10 @@ obsidian task path=<笔记路径> line=<行号> done vault=MyObsidian           
 
 委托 **defuddle** skill 获取干净正文。
 
+若 defuddle 失败（报错或返回空内容）：
+- 降级到 `WebFetch` 工具直接抓取页面内容
+- 若 WebFetch 也失败：跳过 Step 2，在 Step 3 中仅保存 URL 条目（无摘要无要点，备注"内容无法获取"），告知用户降级原因后结束
+
 **Step 2 — 剖析文章**
 
 从五个维度逐层剖析，输出给用户：
@@ -140,10 +165,20 @@ obsidian task path=<笔记路径> line=<行号> done vault=MyObsidian           
 
 **Step 3 — 提炼并追加到每日笔记**
 
-从剖析结果中提炼以下内容，用 `daily:append` 写入 `### 🔗 Links` section：
+先读取当日笔记，检查是否已存在 `### 🔗 Links` section：
 
 ```bash
+obsidian daily:read vault=MyObsidian
+```
+
+- 当日笔记**已含** `### 🔗 Links` → 直接追加 H4 条目，**不加** section header
+- 当日笔记**未含** `### 🔗 Links` → 追加时带 section header 前缀
+
+```bash
+# 未含 section header 时：
 obsidian daily:append content="### 🔗 Links\n<H4 条目>" vault=MyObsidian
+# 已含 section header 时：
+obsidian daily:append content="<H4 条目>" vault=MyObsidian
 ```
 
 每条链接格式：
@@ -167,6 +202,8 @@ obsidian daily:append content="### 🔗 Links\n<H4 条目>" vault=MyObsidian
 - **是** → 全文保存到 `31_WebClips/Assistant_Clips/<标题>.md`，H4 标题行末附 ` → [[标题]]`
 - **否** → 结束
 
+例外：若用户原始消息中已明确说"保存全文"、"clip 完整页面"、"save full"等，则跳过询问直接执行保存。
+
 ## Skill Delegation
 
 执行各角色时，委托专项 skill 处理具体操作。
@@ -179,10 +216,11 @@ obsidian daily:append content="### 🔗 Links\n<H4 条目>" vault=MyObsidian
 - **doc-coauthoring** — 写技术文档、方案等结构化内容
 - **internal-comms** — 写内部沟通（3P updates、状态报告等）
 
-### Workspace Skills
+### 技能优先级说明
 
-- **obsidian-cli** — 所有 vault 读取、创建、搜索操作的底层工具
-- **defuddle** — 提取网页干净内容（替代 WebFetch），Intent Router 处理 URL 时使用
+`obsidian-knowledge`（本文件）是**主规范**，定义所有角色、工作流和决策逻辑。
+`obsidian-cli`（位于 `references/obsidian-cli.md`）是**底层工具参考**，仅描述 CLI 命令语法。
+两者不冲突——遇到命令细节疑问时查阅 references/obsidian-cli.md，遇到工作流疑问时以本文件为准。
 
 ## Privacy Boundaries
 
