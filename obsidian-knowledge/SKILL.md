@@ -237,6 +237,8 @@ obsidian vault=MyObsidian task path=<路径> line=<行号> done
 | 思想深化 | 隐含前提、未明言假设、哲学基础 |
 | 实践转化 | 可行洞见与具体应用方法 |
 
+**要求**:每个维度 3-5 行,保留对比表和关键数据.
+
 **Step 3 — 提炼并追加到每日笔记**
 
 按 Daily Notes Collaborator 的 section 存在性检查通用规则处理 `### 🔗 Links` section：
