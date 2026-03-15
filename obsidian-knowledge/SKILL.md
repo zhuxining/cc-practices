@@ -1,6 +1,6 @@
 ---
 name: obsidian-knowledge
-description: 指导 Agent 助理如何在共享的 MyObsidian vault 中进行知识管理。当需要创建、整理、检索笔记，处理网页链接，维护每日笔记，或整理 Inbox 时使用。触发关键词：记录、笔记、整理、归档、每日、任务。
+description: 指导 Agent 助理如何在共享的 MyObsidian vault 中进行知识管理。当需要创建、整理、检索笔记，维护每日笔记，整理 Inbox，或将已提取的网页内容保存到知识库时使用。触发关键词：记录、笔记、整理、归档、每日、任务、保存到知识库。
 ---
 
 # Obsidian Knowledge Management
@@ -116,8 +116,8 @@ obsidian vault=MyObsidian read file="笔记名"
 2. 回答时引用已有笔记（如"参见 [[笔记名]]"）
 3. 若搜索返回空结果或内容不足：
    - 告知用户"vault 中未找到相关笔记"
-   - 基于自身知识或外部搜索补充回答
-   - 可建议将本次对话结果保存为新笔记（触发 Note Creator）
+   - 委托 **search-and-fetch** skill 进行外部搜索补充回答
+   - 可建议将搜索结果保存为新笔记（触发 Note Creator）或保存到每日笔记（触发 Clipping Save）
 
 ### Daily Notes Collaborator
 
@@ -146,7 +146,7 @@ obsidian vault=MyObsidian daily:append content="## 🤖 Assistant Generated\n"
 |---------|-------------|---------|
 | 结构化要点 | `### 📝 Notes` | 会议记录、学习笔记 |
 | 想法/感受 | `### 💭 Thoughts` | 自由文本 |
-| 网页链接 | `### 🔗 Links` | H4 条目，见 Intent Router |
+| 网页链接 | `### 🔗 Links` | H4 条目，见 Clipping Save |
 
 ```bash
 # section 不存在时（带 header）：
@@ -203,43 +203,22 @@ obsidian vault=MyObsidian task path=<路径> line=<行号> done
 | "最近有哪些没做完的" | `tasks todo path="01_Daily"` 汇总，按笔记（日期）分组展示 |
 | 迁移历史未完成任务 | 追加到当日笔记，原笔记标记为 `[-]` 并添加 `(已迁移至[[<笔记名>]])` |
 
-### Intent Router
+### Clipping Save
+
+将 **search-and-fetch** 已提取分析的网页内容保存到 Obsidian vault。
 
 **触发条件**：
 
 | 情况 | 处理 |
 |------|------|
-| 消息**仅含 URL**（无其他文字，或只有 URL + 空格/标点） | 直接执行，无需确认 |
-| 消息含 URL + 明确意图词（"保存"、"记录"、"归档"、"clip"、"save"等） | 直接执行，无需确认 |
-| URL 出现在较长消息中，意图不明 | 先确认："要保存到 Obsidian 吗？还是只需要我读一下？" |
-| 纯文字消息，无 URL | 不触发 |
-| URL 明显是工具性的（localhost、内网地址、文件路径） | 不触发 |
+| search-and-fetch 完成内容提取/分析后，用户说"保存"、"记录"、"归档"、"clip"、"save" | 直接执行 |
+| search-and-fetch 完成后，用户未明确表示保存意图 | 询问："要保存到 Obsidian 吗？" |
 
-用户发送网页 URL 时，依次执行：
+**前置依赖**：search-and-fetch 的集成模式输出（标题、摘要、要点、分析、完整正文、实体）。
 
-**Step 1 — 获取正文**
+触发后依次执行：
 
-委托 **defuddle** skill 获取干净正文。
-
-若 defuddle 失败（报错或返回空内容）：
-- 降级到 `WebFetch` 工具直接抓取页面内容
-- 若 WebFetch 也失败：跳过 Step 2，在 Step 3 中仅保存 URL 条目（备注"内容无法获取"），告知用户降级原因后结束
-
-**Step 2 — 剖析文章**
-
-从五个维度逐层剖析，输出给用户：
-
-| 维度 | 关注点 |
-|------|-------|
-| 文本解构 | 核心论点、支撑论据、逻辑关系 |
-| 概念提炼 | 关键概念的精确含义及相互关联 |
-| 批判审视 | 论证强弱、逻辑漏洞、视角局限 |
-| 思想深化 | 隐含前提、未明言假设、哲学基础 |
-| 实践转化 | 可行洞见与具体应用方法 |
-
-**要求**:每个维度 3-5 行,保留对比表和关键数据.
-
-**Step 3 — 提炼并追加到每日笔记**
+**Step 1 — 提炼并追加到每日笔记**
 
 按 Daily Notes Collaborator 的 section 存在性检查通用规则处理 `### 🔗 Links` section：
 
@@ -265,7 +244,7 @@ obsidian vault=MyObsidian daily:append content="<H4 条目>"
 **📚 Resources**: 书名               ← 书籍/论文（如有）
 ```
 
-**Step 4 — 询问是否保存完整页面**
+**Step 2 — 询问是否保存完整页面**
 
 追加后询问用户："要保存完整页面到 WebClips 吗？"
 
@@ -281,6 +260,7 @@ obsidian vault=MyObsidian daily:append content="<H4 条目>"
 | 需求 | 处理方式 |
 |------|---------|
 | 普通笔记增删改查 | 直接使用 obsidian CLI，无需委托 |
+| 网页搜索与内容提取分析 | 委托 **search-and-fetch** skill |
 | 创建格式复杂的结构化文档（含模板、特定规范） | 委托 **obsidian-markdown** skill |
 | 创建 .base 数据库视图 | 委托 **obsidian-bases** skill |
 | 创建 .canvas 可视化画布 | 委托 **json-canvas** skill |
