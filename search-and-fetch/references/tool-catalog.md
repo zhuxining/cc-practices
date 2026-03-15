@@ -39,30 +39,31 @@ ctx7 docs <libraryId> <query>
 - 始终先 `library` 解析再 `docs` 查询
 - **每个问题最多调用 3 次**，3 次未找到则使用已有最佳结果
 
-### browser-use（浏览器搜索）
+### agent-browser（浏览器搜索）
 
-用于深度研究时访问 Google/Bing 等搜索引擎：
+Rust 原生 CLI，使用 snapshot-ref 模式交互，token 开销极低。用于深度研究时访问搜索引擎：
 
 ```bash
 # 打开搜索引擎
-browser-use open "https://www.google.com/search?q=搜索词"
+agent-browser open "https://www.google.com/search?q=搜索词"
 
-# 获取搜索结果页面状态
-browser-use state
+# 获取可交互元素的无障碍树（返回 @e1, @e2 等引用）
+agent-browser snapshot
 
-# 提取搜索结果文本
-browser-use get text <index>
+# 点击某个搜索结果（使用 snapshot 返回的引用）
+agent-browser click @e5
 
-# 点击进入某个结果
-browser-use click <index>
+# 提取页面文本
+agent-browser get text
 
 # 完成后关闭
-browser-use close
+agent-browser close
 ```
 
 - 仅在深度研究模式下使用
 - 可以访问任何搜索引擎（Google、Bing、百度等）
-- 能处理需要 JavaScript 渲染的搜索结果页
+- 通过 `snapshot` 获取元素引用后精确交互，避免脆弱的 CSS 选择器
+- 也支持语义定位：`agent-browser find text "搜索结果" click`
 
 ---
 
@@ -104,27 +105,32 @@ WebFetch(url="https://example.com", prompt="Extract the article content")
 - 作为 WebFetch 之后的额外降级选项
 - 调用方式遵循 MCP 标准：`mcp__<server>__<tool>(url=...)`
 
-### browser-use（最终手段）
+### agent-browser（最终手段）
 
 用于 JS 重度页面（SPA、动态渲染）：
 
 ```bash
 # 打开页面
-browser-use open <url>
+agent-browser open <url>
 
-# 等待页面加载
-browser-use wait text "关键文本"
+# 获取页面无障碍树快照（确认加载完成 + 获取元素引用）
+agent-browser snapshot
 
 # 提取全页文本
-browser-use eval "document.body.innerText"
+agent-browser get text
 
-# 或提取特定区域
-browser-use get html --selector "article"
-browser-use get html --selector "main"
+# 或提取特定区域的文本
+agent-browser get text "article"
+agent-browser get text "main"
+
+# 提取特定区域 HTML
+agent-browser get html "article"
 
 # 完成后关闭
-browser-use close
+agent-browser close
 ```
 
 - 能处理需要 JavaScript 渲染的页面
-- 开销最大，仅在其他工具都失败时使用
+- 输出精简（~385 字符 vs Playwright MCP ~4127 字符），节省 token
+- 仅在其他工具都失败时使用
+- 未安装时：`npm install -g agent-browser && agent-browser install`

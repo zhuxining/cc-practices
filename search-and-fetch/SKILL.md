@@ -1,6 +1,6 @@
 ---
 name: search-and-fetch
-description: 通用网页搜索与内容提取技能。多源并行搜索（WebSearch、MCP 搜索工具、ctx7、browser-use）、网页正文提取（defuddle/WebFetch）与结构化文章分析。当用户需要搜索信息、研究主题、查找资料、获取网页内容、阅读文章、分析网页时使用。触发场景包括：搜索、研究、调研、fetch、查一下、帮我找、读这个链接、分析这篇文章。即使用户没有明确说"搜索"，只要涉及信息获取和网页内容处理都应触发此技能。
+description: 通用网页搜索与内容提取技能。多源并行搜索（WebSearch、MCP 搜索工具、ctx7、agent-browser）、网页正文提取（defuddle/WebFetch）与结构化文章分析。当用户需要搜索信息、研究主题、查找资料、获取网页内容、阅读文章、分析网页时使用。触发场景包括：搜索、研究、调研、fetch、查一下、帮我找、读这个链接、分析这篇文章。即使用户没有明确说"搜索"，只要涉及信息获取和网页内容处理都应触发此技能。
 ---
 
 # Search & Fetch
@@ -16,8 +16,8 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 | 内置搜索 | `WebSearch` | DuckDuckGo 搜索，始终可用 |
 | MCP 搜索 | 当前环境中可用的 MCP 搜索工具 | 中文搜索、专业搜索等，按可用性自动选用 |
 | 技术文档 | `ctx7` CLI | 编程库/框架官方文档查询 |
-| 浏览器 | `browser-use` CLI | 访问搜索引擎、提取 JS 重度页面 |
-| 内容提取 | `defuddle` CLI → `WebFetch` → MCP fetch → `browser-use` | 按优先级降级 |
+| 浏览器 | `agent-browser` CLI | 访问搜索引擎、提取 JS 重度页面（Rust 原生，token 高效） |
+| 内容提取 | `defuddle` CLI → `WebFetch` → MCP fetch → `agent-browser` | 按优先级降级 |
 
 具体调用语法参见 `references/tool-catalog.md`。
 
@@ -58,7 +58,7 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 | **技术文档** | 涉及编程库、API、框架用法 | `ctx7`（library → docs）+ `WebSearch` |
 | **中文内容** | 中文查询，或中国特定话题 | MCP 搜索 + `WebSearch` 并行 |
 | **通用查询** | 其他一般性问题 | `WebSearch` + MCP 搜索 并行 |
-| **深度研究** | 用户明确要求全面/深入调研 | 全部工具并行，含 `browser-use` 访问 Google/Bing |
+| **深度研究** | 用户明确要求全面/深入调研 | 全部工具并行，含 `agent-browser` 访问 Google/Bing |
 
 ### Step 2 — 并行执行搜索
 
@@ -68,7 +68,7 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 - 独立工具并行调用，不等待
 - context7 有顺序依赖：先 `ctx7 library` 解析库 ID，再 `ctx7 docs` 查询内容（每个问题最多 3 次调用）
 - 对同一查询可以为不同搜索引擎调整措辞（如中文查询给 MCP 搜索原文，给 WebSearch 翻译为英文）
-- 深度研究时使用 `browser-use` 打开 Google/Bing 搜索页提取结果
+- 深度研究时使用 `agent-browser` 打开 Google/Bing 搜索页，通过 `snapshot` 获取元素引用后提取结果
 
 ### Step 3 — 结果综合
 
@@ -114,7 +114,7 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 1. defuddle parse <url> --md          ← 首选，去除噪音
 2. WebFetch(url)                       ← 通用降级
 3. MCP fetch 工具（如有）               ← MCP 降级
-4. browser-use open <url> → get text   ← JS 重度页面最终手段
+4. agent-browser open <url> → snapshot → get text   ← JS 重度页面最终手段
 ```
 
 提取成功后记录使用了哪个工具，便于透明告知用户。
@@ -177,10 +177,10 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 | 工具不可用 | 影响 | 替代方案 |
 |-----------|------|---------|
 | defuddle | 无法提取干净正文 | 降级到 WebFetch |
-| WebFetch | 提取能力下降 | 使用 MCP fetch 或 browser-use |
+| WebFetch | 提取能力下降 | 使用 MCP fetch 或 agent-browser |
 | MCP 搜索 | 搜索来源减少 | 用 WebSearch 处理所有查询 |
 | ctx7 | 无库文档搜索 | 用 WebSearch + site:xxx 定向搜索 |
-| browser-use | 无法处理 JS 重度页面 | 告知用户，使用 WebFetch 尽力提取 |
+| agent-browser | 无法处理 JS 重度页面 | 告知用户，使用 WebFetch 尽力提取 |
 | 全部搜索工具 | 无法搜索 | 告知用户，建议直接提供 URL |
 
 不要因为某个工具失败就中断流程——始终尝试下一个降级方案，直到全部耗尽才告知用户。
