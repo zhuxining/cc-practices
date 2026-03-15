@@ -1,5 +1,5 @@
 ---
-name: screenshot
+name: macos-screenshot
 description: macOS 截屏技能。当需要截取屏幕截图时使用。触发词：截屏、截图、screenshot。
 ---
 
