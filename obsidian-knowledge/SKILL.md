@@ -251,7 +251,7 @@ obsidian vault=MyObsidian daily:append content="<H4 条目>"
 - **是** → 全文保存到 `31_WebClips/Assistant_Clips/<标题>.md`，H4 标题行末附 ` → [[标题]]`
 - **否** → 结束
 
-例外：若用户原始消息中已明确说"保存全文"、"clip 完整页面"、"save full"等，则跳过询问直接执行保存。
+例外：若用户原始消息中已明确说"保存全文"、"clip 完整页面"、"save full"、"全部保存"等，则跳过询问直接执行保存。
 
 ## Skill Delegation
 
