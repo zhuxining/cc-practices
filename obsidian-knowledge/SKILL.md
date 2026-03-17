@@ -125,11 +125,7 @@ obsidian vault=MyObsidian read file="笔记名"
 
 **每日笔记结构约定**：
 
-Agent 生成的所有内容统一放在 `## 🤖 Assistant Generated` section 下。首次追加前检查该 section 是否存在，不存在则先追加 header：
-
-```bash
-obsidian vault=MyObsidian daily:append content="## 🤖 Assistant Generated\n"
-```
+Agent 生成的所有内容统一放在 `## 🤖 Assistant Generated` section 下。
 
 **Section 存在性检查（通用规则）**：
 
@@ -165,14 +161,17 @@ obsidian vault=MyObsidian daily:append content="<内容>"
 2. **内容整理**：
    - `## 🤖 Assistant Generated` 内：归并散落的同类 H3 section，顺序固定为 Notes → Thoughts → Links
    - `## 🤖 Assistant Generated` 外的非任务内容：询问用户是否归入对应 section，**不自动移动，由用户确认**
-3. **展示重组后的完整内容给用户，确认无误后执行覆写**：
+3. **任务整理**（自动执行）：
+   - `obsidian vault=MyObsidian tasks daily` 展示当日任务清单
+   - `obsidian vault=MyObsidian tasks todo path="01_Daily"` 汇总最近未完成任务，按笔记（日期）分组展示
+   - **自动迁移历史未完成任务**：对每个未完成任务，追加到当日笔记顶部（`daily:prepend`），原任务标记为 `[-]` 并添加 `(已迁移至[[<今日笔记名>]])`
+4. **展示重组后的完整内容给用户，确认无误后执行覆写**：
    ```bash
-   # Step 3a: 获取当日笔记相对路径
+   # Step 4a: 获取当日笔记相对路径
    obsidian vault=MyObsidian daily:path
-   # Step 3b: 覆写（overwrite flag 防止创建新文件）
+   # Step 4b: 覆写（overwrite flag 防止创建新文件）
    obsidian vault=MyObsidian create path="<上一步路径>" content="<重组后全文>" overwrite silent
    ```
-4. `obsidian vault=MyObsidian tasks daily` 展示任务清单，供用户核查
 
 ### Task Manager
 
@@ -251,7 +250,7 @@ obsidian vault=MyObsidian daily:append content="<H4 条目>"
 - **是** → 全文保存到 `31_WebClips/Assistant_Clips/<标题>.md`，H4 标题行末附 ` → [[标题]]`
 - **否** → 结束
 
-例外：若用户原始消息中已明确说"保存全文"、"clip 完整页面"、"save full"、"全部保存"等，则跳过询问直接执行保存。
+例外：若用户原始消息中已明确说"保存全文"、"clip 完整页面"、"save full"、"全部保存"、"剪切并保存"等，则跳过询问直接执行保存。
 
 ## Skill Delegation
 
