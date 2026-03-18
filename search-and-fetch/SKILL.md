@@ -1,6 +1,6 @@
 ---
 name: search-and-fetch
-description: 通用网页搜索与内容提取技能。多源并行搜索（WebSearch、MCP 搜索工具、ctx7、agent-browser）、网页正文提取（defuddle/WebFetch）与结构化文章分析。当用户需要搜索信息、研究主题、查找资料、获取网页内容、阅读文章、分析网页时使用。触发场景包括：搜索、研究、调研、fetch、查一下、帮我找、读这个链接、分析这篇文章。即使用户没有明确说"搜索"，只要涉及信息获取和网页内容处理都应触发此技能。
+description: 通用网页搜索与内容提取技能。多源并行搜索（WebSearch、MCP 搜索工具、ctx7、agent-browser）、网页正文提取（defuddle/crwl）与结构化文章分析。当用户需要搜索信息、研究主题、查找资料、获取网页内容、阅读文章、分析网页时使用。触发场景包括：搜索、研究、调研、fetch、查一下、帮我找、读这个链接、分析这篇文章。即使用户没有明确说"搜索"，只要涉及信息获取和网页内容处理都应触发此技能。
 ---
 
 # Search & Fetch
@@ -17,7 +17,7 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 | MCP 搜索 | 当前环境中可用的 MCP 搜索工具 | 中文搜索、专业搜索等，按可用性自动选用 |
 | 技术文档 | `ctx7` CLI | 编程库/框架官方文档查询 |
 | 浏览器 | `agent-browser` CLI | 访问搜索引擎、提取 JS 重度页面（Rust 原生，token 高效） |
-| 内容提取 | `defuddle` CLI → `WebFetch` → MCP fetch → `agent-browser` | 按优先级降级 |
+| 内容提取 | `defuddle` CLI → `crwl` CLI → `agent-browser` | 按优先级降级 |
 
 具体调用语法参见 `references/tool-catalog.md`。
 
@@ -112,9 +112,8 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 
 ```
 1. defuddle parse <url> --md          ← 首选，去除噪音
-2. WebFetch(url)                       ← 通用降级
-3. MCP fetch 工具（如有）               ← MCP 降级
-4. agent-browser open <url> → snapshot → get text   ← JS 重度页面最终手段
+2. crwl crawl <url> -o md-fit         ← 支持 JS 渲染的降级
+3. agent-browser open <url> → snapshot → get text   ← JS 重度页面最终手段
 ```
 
 提取成功后记录使用了哪个工具，便于透明告知用户。
@@ -176,11 +175,11 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 
 | 工具不可用 | 影响 | 替代方案 |
 |-----------|------|---------|
-| defuddle | 无法提取干净正文 | 降级到 WebFetch |
-| WebFetch | 提取能力下降 | 使用 MCP fetch 或 agent-browser |
+| defuddle | 无法提取干净正文 | 降级到 crwl |
+| crwl | 无法提取带 JS 渲染内容 | 降级到 agent-browser |
 | MCP 搜索 | 搜索来源减少 | 用 WebSearch 处理所有查询 |
 | ctx7 | 无库文档搜索 | 用 WebSearch + site:xxx 定向搜索 |
-| agent-browser | 无法处理 JS 重度页面 | 告知用户，使用 WebFetch 尽力提取 |
+| agent-browser | 无法处理 JS 重度页面 | 告知用户，提取失败 |
 | 全部搜索工具 | 无法搜索 | 告知用户，建议直接提供 URL |
 
 不要因为某个工具失败就中断流程——始终尝试下一个降级方案，直到全部耗尽才告知用户。

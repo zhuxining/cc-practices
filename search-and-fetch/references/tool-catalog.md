@@ -13,7 +13,7 @@ WebSearch(query="搜索关键词")
 ```
 
 - 返回搜索结果摘要
-- 英文查询效果更好，中文查询可考虑同时使用 bailian
+- 英文查询效果更好，中文查询可考虑同时使用 MCP 搜索工具
 
 ### MCP 搜索工具
 
@@ -89,21 +89,23 @@ defuddle parse <url> -p domain
 - 标准网页的首选提取方式
 - 未安装时：`npm install -g defuddle-cli`
 
-### WebFetch（内置降级）
+### crwl（JS 渲染降级）
 
+```bash
+# 提取适合阅读的精简 markdown（推荐）
+crwl crawl <url> -o md-fit
+
+# 提取完整 markdown
+crwl crawl <url> -o md
+
+# 跳过缓存重新爬取
+crwl crawl <url> -o md-fit -bc
 ```
-WebFetch(url="https://example.com", prompt="Extract the article content")
-```
 
-- 内置工具，始终可用
-- 可通过 prompt 参数引导提取重点
-
-### MCP fetch 工具（降级选项）
-
-使用当前环境中可用的 MCP fetch 工具。检查可用工具列表中是否有 fetch 类 MCP。
-
-- 作为 WebFetch 之后的额外降级选项
-- 调用方式遵循 MCP 标准：`mcp__<server>__<tool>(url=...)`
+- 支持 JavaScript 渲染，适用于 defuddle 无法处理的动态页面
+- `md-fit` 输出格式去除冗余内容，适合阅读
+- 比 agent-browser 开销低，作为 agent-browser 之前的优先降级
+- 未安装时：`pip install crawl4ai` 后 `crwl` 即可使用
 
 ### agent-browser（最终手段）
 
@@ -131,6 +133,6 @@ agent-browser close
 ```
 
 - 能处理需要 JavaScript 渲染的页面
-- 输出精简（~385 字符 vs Playwright MCP ~4127 字符），节省 token
+- 输出精简，节省 token
 - 仅在其他工具都失败时使用
 - 未安装时：`npm install -g agent-browser && agent-browser install`
