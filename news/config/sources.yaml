@@ -1,0 +1,130 @@
+# News Skill 信息源配置
+# 扩展说明：
+#   - 新增话题：在 topics 块加一个 key
+#   - 新增直接 URL 源：在 direct_sources 追加一条
+#   - 调整每日简报：修改 daily_briefing_topics 列表
+
+# ── 话题配置（搜索类信息源）──────────────────────────────
+# 每个话题包含：
+#   name: 显示名称
+#   search_queries: 用于搜索的查询词列表（中英文各一份效果更好）
+#   websites: 限定来源的域名列表（可为空，为空则不限源）
+#   keywords: 关键词标签（用于匹配用户意图）
+
+topics:
+  ai:
+    name: "人工智能"
+    search_queries:
+      - "AI LLM news today"
+      - "人工智能 大模型 最新动态"
+    websites:
+      - "techcrunch.com"
+      - "36kr.com"
+      - "theverge.com"
+    keywords:
+      - LLM
+      - AGI
+      - Claude
+      - GPT
+      - Gemini
+      - 大模型
+      - AI
+
+  crypto:
+    name: "加密货币"
+    search_queries:
+      - "crypto bitcoin news today"
+      - "加密货币 比特币 最新动态"
+    websites:
+      - "coindesk.com"
+      - "cointelegraph.com"
+    keywords:
+      - bitcoin
+      - BTC
+      - ETH
+      - 加密货币
+      - crypto
+      - web3
+
+  tech:
+    name: "科技"
+    search_queries:
+      - "tech industry news today"
+      - "科技 互联网 最新动态"
+    websites:
+      - "techcrunch.com"
+      - "wired.com"
+      - "36kr.com"
+    keywords:
+      - 科技
+      - tech
+      - startup
+      - 创业
+
+  finance:
+    name: "财经"
+    search_queries:
+      - "financial markets news today"
+      - "财经 股市 最新动态"
+    websites:
+      - "reuters.com"
+      - "bloomberg.com"
+      - "wallstreetcn.com"
+    keywords:
+      - 财经
+      - 股市
+      - finance
+      - 美股
+      - A股
+
+  # ── 模板（复制此块添加新话题）────────────────────────
+  # new_topic:
+  #   name: "话题显示名称"
+  #   search_queries:
+  #     - "english search query"
+  #     - "中文搜索查询"
+  #   websites:
+  #     - "example.com"
+  #   keywords:
+  #     - 关键词1
+  #     - keyword2
+
+
+# ── 直接 URL 源（RSS / 页面类）────────────────────────────
+# 每条包含：
+#   name: 来源名称
+#   url: 目标 URL
+#   type: page（普通网页）| rss（RSS/Atom feed）
+
+direct_sources:
+  - name: "Hacker News"
+    url: "https://news.ycombinator.com"
+    type: page
+
+  - name: "MIT Technology Review"
+    url: "https://www.technologyreview.com/feed"
+    type: rss
+
+  - name: "Agents Radar Issues"
+    url: "https://github.com/rollysys/agents-radar/issues"
+    type: page
+    description: "agents-radar 项目的 GitHub Issues 追踪"
+
+  # 更多直接源示例（默认注释，按需启用）：
+  # - name: "The Verge"
+  #   url: "https://www.theverge.com/rss/index.xml"
+  #   type: rss
+
+  # - name: "少数派"
+  #   url: "https://sspai.com"
+  #   type: page
+
+
+# ── 每日简报默认话题 ────────────────────────────────────
+# 运行"每日简报"时自动包含的话题 key 列表
+# 顺序即输出顺序
+
+daily_briefing_topics:
+  - ai
+  - tech
+  - finance
