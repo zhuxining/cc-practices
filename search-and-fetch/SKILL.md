@@ -1,6 +1,6 @@
 ---
 name: search-and-fetch
-description: 通用网页搜索与内容提取技能。多源并行搜索（WebSearch、MCP 搜索工具、ctx7、agent-browser）、网页正文提取（defuddle/crwl）与结构化文章分析。当用户需要搜索信息、研究主题、查找资料、获取网页内容、阅读文章、分析网页时使用。触发场景包括：搜索、研究、调研、fetch、查一下、帮我找、读这个链接、分析这篇文章。即使用户没有明确说"搜索"，只要涉及信息获取和网页内容处理都应触发此技能。
+description: 通用网页搜索与内容提取技能。多源并行搜索（WebSearch、MCP 搜索工具、ctx7、agent-browser）、网页正文提取（crwl）与结构化文章分析。当用户需要搜索信息、研究主题、查找资料、获取网页内容、阅读文章、分析网页时使用。触发场景包括：搜索、研究、调研、fetch、查一下、帮我找、读这个链接、分析这篇文章。即使用户没有明确说"搜索"，只要涉及信息获取和网页内容处理都应触发此技能。
 ---
 
 # Search & Fetch
@@ -16,8 +16,8 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 | 内置搜索 | `WebSearch` | DuckDuckGo 搜索，始终可用 |
 | MCP 搜索 | 当前环境中可用的 MCP 搜索工具 | 中文搜索、专业搜索等，按可用性自动选用 |
 | 技术文档 | `ctx7` CLI | 编程库/框架官方文档查询 |
-| 浏览器 | `agent-browser` CLI | 访问搜索引擎、提取 JS 重度页面（Rust 原生，token 高效） |
-| 内容提取 | `defuddle` CLI → `crwl` CLI → `agent-browser` | 按优先级降级 |
+| 浏览器 | `agent-browser` CLI | 访问搜索引擎、页面交互（Rust 原生，token 高效） |
+| 内容提取 | `crwl` CLI → `agent-browser` | 按优先级降级 |
 
 具体调用语法参见 `references/tool-catalog.md`。
 
@@ -56,8 +56,7 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 | 查询类型 | 判断依据 | 工具组合 |
 |---------|---------|---------|
 | **技术文档** | 涉及编程库、API、框架用法 | `ctx7`（library → docs）+ `WebSearch` |
-| **中文内容** | 中文查询，或中国特定话题 | MCP 搜索 + `WebSearch` 并行 |
-| **通用查询** | 其他一般性问题 | `WebSearch` + MCP 搜索 并行 |
+| **通用查询** | 一般性问题 | `WebSearch` + MCP 搜索 并行（中文查询优先 MCP 搜索） |
 | **深度研究** | 用户明确要求全面/深入调研 | 全部工具并行，含 `agent-browser` 访问 Google/Bing |
 
 ### Step 2 — 并行执行搜索
@@ -97,7 +96,7 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 
 搜索结果展示后，提供后续选项：
 - "要我读取某个链接的完整内容吗？" → 转入 Fetch Mode
-- "要保存到知识库吗？" → 引导用户触发 obsidian-knowledge 等知识管理技能
+- "要保存到知识库吗？" → 引导用户触发知识管理技能
 - 用户可继续追问以缩小或扩大搜索范围
 
 ---
@@ -111,9 +110,8 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 按优先级尝试，前一个失败（报错、返回空、内容 < 100 字符）时自动降级：
 
 ```
-1. defuddle parse <url> --md          ← 首选，去除噪音
-2. crwl crawl <url> -o md-fit         ← 支持 JS 渲染的降级
-3. agent-browser open <url> → snapshot → get text   ← JS 重度页面最终手段
+1. crwl <url> -o md-fit                              ← 首选，支持 JS 渲染
+2. agent-browser open <url> → snapshot → get text   ← 最终手段
 ```
 
 提取成功后记录使用了哪个工具，便于透明告知用户。
@@ -154,7 +152,7 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 - 要点三
 ```
 
-分析输出后，主动提示："要保存到知识库吗？" 若用户同意，引导触发 obsidian-knowledge 的 Clipping Save 流程。
+分析输出后，主动提示："要保存到知识库吗？" 若用户同意，引导触发知识管理技能的保存流程。
 
 **集成模式**（被其他技能委托调用时）：
 
@@ -175,8 +173,7 @@ description: 通用网页搜索与内容提取技能。多源并行搜索（WebS
 
 | 工具不可用 | 影响 | 替代方案 |
 |-----------|------|---------|
-| defuddle | 无法提取干净正文 | 降级到 crwl |
-| crwl | 无法提取带 JS 渲染内容 | 降级到 agent-browser |
+| crwl | 无法提取内容 | 降级到 agent-browser |
 | MCP 搜索 | 搜索来源减少 | 用 WebSearch 处理所有查询 |
 | ctx7 | 无库文档搜索 | 用 WebSearch + site:xxx 定向搜索 |
 | agent-browser | 无法处理 JS 重度页面 | 告知用户，提取失败 |

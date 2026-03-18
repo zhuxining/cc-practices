@@ -69,47 +69,27 @@ agent-browser close
 
 ## 提取工具
 
-### defuddle（首选）
-
-```bash
-# 提取干净 markdown 正文
-defuddle parse <url> --md
-
-# 保存到文件
-defuddle parse <url> --md -o content.md
-
-# 提取元数据
-defuddle parse <url> -p title
-defuddle parse <url> -p description
-defuddle parse <url> -p domain
-```
-
-- 去除广告、导航、侧边栏等噪音
-- 节省 token 开销
-- 标准网页的首选提取方式
-- 未安装时：`npm install -g defuddle-cli`
-
-### crwl（JS 渲染降级）
+### crwl（首选）
 
 ```bash
 # 提取适合阅读的精简 markdown（推荐）
-crwl crawl <url> -o md-fit
+crwl <url> -o md-fit
 
 # 提取完整 markdown
-crwl crawl <url> -o md
+crwl <url> -o md
 
 # 跳过缓存重新爬取
-crwl crawl <url> -o md-fit -bc
+crwl <url> -o md-fit -bc
 ```
 
-- 支持 JavaScript 渲染，适用于 defuddle 无法处理的动态页面
+- 支持 JavaScript 渲染，能处理动态页面
 - `md-fit` 输出格式去除冗余内容，适合阅读
-- 比 agent-browser 开销低，作为 agent-browser 之前的优先降级
+- 比 agent-browser 开销低
 - 未安装时：`pip install crawl4ai` 后 `crwl` 即可使用
 
 ### agent-browser（最终手段）
 
-用于 JS 重度页面（SPA、动态渲染）：
+用于 crwl 无法处理的场景（需要登录态、复杂交互、反爬严格的页面）：
 
 ```bash
 # 打开页面
@@ -132,7 +112,7 @@ agent-browser get html "article"
 agent-browser close
 ```
 
-- 能处理需要 JavaScript 渲染的页面
+- 支持页面交互（点击、滚动、等待加载），能应对反爬和动态加载
 - 输出精简，节省 token
-- 仅在其他工具都失败时使用
+- 仅在 crwl 失败时使用
 - 未安装时：`npm install -g agent-browser && agent-browser install`
