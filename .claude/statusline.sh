@@ -46,10 +46,9 @@ fi
 
 IFS='|' read -r BRANCH STAGED MODIFIED UNTRACKED REMOTE < "$CACHE_FILE"
 
-# Build status line
+# Build status line (line 1)
 LINE="[$MODEL] ${BAR} ${PCT}%"
 
-[ -n "$SESSION_NAME" ] && LINE="$LINE | 󰋱 $SESSION_NAME"
 [ -n "$WORKTREE" ] && LINE="$LINE |  $WORKTREE"
 
 # Directory / Git repo
@@ -72,5 +71,8 @@ fi
 # Duration & Cost
 MINS=$((DURATION_MS / 60000)); SECS=$(((DURATION_MS % 60000) / 1000))
 LINE="$LINE | 󱎫 ${MINS}m${SECS}s | 󰄘 \$$(printf '%.2f' "$COST")"
+
+# Session name on line 2
+[ -n "$SESSION_NAME" ] && LINE="$LINE\n󰋱 $SESSION_NAME"
 
 printf '%b\n' "$LINE"
