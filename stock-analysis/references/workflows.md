@@ -4,30 +4,21 @@
 
 ---
 
-## 市场概览
-
-> 引用模式：选股、扫描、盯盘、复盘
-
-并行执行：
-
-- `stk market index` — 指数表现
-- `stk market temp` — 市场温度
-- `stk market breadth` — 涨跌统计
-
----
-
-## 板块扫描
+## 技术选股筛选
 
 > 引用模式：选股、扫描、复盘
 
-**第一步**（并行）：
+根据策略选择对应 screen 类型，可并行执行多个：
 
-- `stk board list --type sector` — 行业板块排行
-- `stk board list --type concept` — 概念板块排行
+| screen | 含义 | 对应策略 |
+|--------|------|---------|
+| `lxsz` | 连续缩量上涨 | 趋势跟踪 |
+| `cxfl` | 持续放量 | 超跌反弹 |
+| `xstp` | 向上突破 | 突破回踩 |
+| `ljqs` | 量价齐升 | 短线动量 |
 
-**第二步**（依赖第一步结果）：
-
-- 对前 2-3 个板块执行 `stk board flow <名称>` — 验证资金持续流入
+- 选股模式：按策略选 1-2 个 screen 并行执行，取并集作为候选池
+- 扫描/复盘模式：并行执行全部 4 个 screen，各取前 5 概览当日技术热点
 
 ---
 
@@ -40,10 +31,10 @@
 - `stk stock quote <代码>` — 当前价格与涨跌
 - `stk stock flow <代码>` — 资金流向
 - `stk stock history <代码> --count 10` — 近期 K 线 + 全部技术指标
+- `stk stock score <代码>` — 综合评分 + ATR 风控
 
 **按需追加**（异动或需深入分析时）：
 
-- `stk stock chip <代码>` — 筹码结构（仅A股）
 - `stk stock fundamental <代码> --type growth` — 成长性（选股验证时追加）
 
 > `history` 已包含 MACD/RSI/KDJ/BOLL/ATR 等全部指标，无需单独调用 `indicator`。
@@ -68,7 +59,7 @@
 
 > 引用模式：扫描
 
-- `stk market news --source cls --filter 重点 --count 10`
+- `stk market news --source cls --count 10`
 
 ---
 
@@ -76,4 +67,4 @@
 
 > 引用模式：选股
 
-根据 **市场概览** 的温度 + 涨跌统计，参照 `references/strategies.md` 中的「市场环境与策略匹配」表自动确定策略方向。
+根据用户偏好或当前市场判断，参照 `references/strategies.md` 中的「市场环境与策略匹配」表确定策略方向。
