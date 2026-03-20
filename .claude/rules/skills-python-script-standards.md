@@ -1,352 +1,180 @@
 ---
 paths:
-- "./**/scripts/*.sh"
+- "**/scripts/*.py"
 ---
-# Bash Script Standards
 
-This document provides standards for creating Bash scripts.
 
-## Script Header
+# Python Script Standards
 
-All Bash scripts MUST include a header with shebang and metadata:
+Python 脚本开发规范（基于 PEP 723）
+
+---
+
+## PEP 723 元数据
+
+所有脚本必须包含 PEP 723 元数据块：
+
+```python
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "requests>=2.31.0",
+# ]
+# ///
+
+"""脚本功能描述.
+
+Usage:
+    uv run script.py --help
+"""
+```
+
+**关键规则**：
+
+1. 元数据必须位于代码之前
+2. 使用 `# /// script` 和 `# ///` 分隔符（内嵌 TOML 格式）
+3. 列出所有外部依赖及版本约束 (`>=` 最低版本)
+4. 指定 Python 版本（默认 `>=3.12`）
+
+---
+
+## 执行与格式化
+
+**执行**：所有示例必须使用 `uv run` 前缀
 
 ```bash
-#!/usr/bin/env bash
-#
-# Name: script_name.sh
-# Description: Brief description of what the script does.
-#
-# Usage:
-#   ./script_name.sh [options]
-#
-# Options:
-#   -h, --help     Show this help message
-#   -v, --verbose  Enable verbose output
-#
-# Example:
-#   ./script_name.sh --input data.txt --output result.txt
-#
-# Requires: bash 5.0+, coreutils
-#
-
-set -euo pipefail
+uv run script.py
+uv run script.py --help
 ```
 
-**Key Rules:**
-
-1. Use `#!/usr/bin/env bash` for portability
-2. Include script name, description, and usage
-3. List all options with descriptions
-4. Include an example usage
-5. Specify minimum bash version (default: 5.0+)
-6. Always use `set -euo pipefail` for strict error handling
-
-## Execution
-
-Run scripts directly or with `bash`:
+**格式化**：开发完成后必须用 `ruff` 检查
 
 ```bash
-# Make executable and run directly
-chmod +x script.sh
-./script.sh
-
-# Or run with bash
-bash script.sh
+uvx ruff check script.py
+uvx ruff check . --fix
 ```
 
-## Documentation Standards
+---
 
-**Script Header:**
+## 文档规范
 
-```bash
-#
-# Description: Process input files and generate summary report.
-#
-# Usage:
-#   ./process.sh [directory]
-#
-# Arguments:
-#   directory    Path to directory containing input files (default: current directory)
-#
-# Example:
-#   ./process.sh /path/to/data
-#
+```python
+"""模块功能简要描述.
+
+Usage:
+    uv run module.py --help
+"""
+
+def process_data(data: list, threshold: float) -> dict | None:
+    """处理输入数据并返回过滤结果.
+
+    Args:
+        data: 输入数据列表
+        threshold: 最小阈值
+
+    Returns:
+        处理结果字典，错误时返回 None
+    """
 ```
 
-**Function Documentation:**
+**规则**：简单函数用单行，复杂函数用多行（summary + Args + Returns），关注"做什么"而非"怎么做"。
 
-```bash
-# Process a single input file and append results to output
-# Arguments:
-#   $1 - Input file path
-#   $2 - Output file path
-# Returns:
-#   0 on success, 1 on error
-process_file() {
-    local input_file="$1"
-    local output_file="$2"
+---
 
-    if [[ ! -f "$input_file" ]]; then
-        echo "✗ Error: File not found: $input_file" >&2
-        return 1
-    fi
+## 错误处理
 
-    # Processing logic here
-    echo "Processing: $input_file" >> "$output_file"
-}
+**规则**：
+
+1. 尽可能捕获特定异常
+2. 向 stderr 打印用户友好的错误消息
+3. 验证时返回 `(bool, str)` 元组
+4. 允许不可恢复错误向上传播
+5. **重新抛出时保留异常链** - 使用 `raise ... from e`
+
+**异常链最佳实践**：
+
+```python
+# ❌ 错误 - 丢失原始异常上下文
+try:
+    data = fetch_from_api()
+except Exception as e:
+    raise RuntimeError(f"Failed to fetch data: {e}")
+
+# ✓ 正确 - 保留异常链便于调试
+try:
+    data = fetch_from_api()
+except Exception as e:
+    raise RuntimeError(f"Failed to fetch data: {e}") from e
 ```
 
-## Error Handling
+---
 
-**Use `set -euo pipefail`:**
+## 导入规范
 
-```bash
-set -euo pipefail
-# -e: Exit on error
-# -u: Exit on undefined variable
-# -o pipefail: Exit on pipe failure
+**规则**：始终使用**绝对导入**（完整模块路径），禁止相对导入
+
+```python
+# ❌ 错误
+from .utils import helper
+from ..config import settings
+
+# ✓ 正确
+from core.utils import helper
+from core.config import settings
 ```
 
-**Error Handling Patterns:**
+**原因**：清晰明确模块来源，避免重构混淆，更好的 IDE/工具支持。
 
-```bash
-# Trap errors for cleanup
-trap 'echo "✗ Error: Script failed at line $LINENO"; exit 1' ERR
+---
 
-# Check required commands
-check_dependencies() {
-    local deps=("curl" "jq" "grep")
-    for cmd in "${deps[@]}"; do
-        if ! command -v "$cmd" &>/dev/null; then
-            echo "✗ Error: Required command not found: $cmd" >&2
-            exit 1
-        fi
-    done
-}
+## 输入输出
 
-# Validate arguments
-if [[ $# -lt 1 ]]; then
-    echo "✗ Error: Missing required argument" >&2
-    echo "Usage: $0 <input_file>" >&2
-    exit 1
-fi
+**命令行参数**：
+
+```python
+parser.add_argument("--symbol", required=True, help="股票代码")
+parser.add_argument("--period", default="day", help="周期（默认：day）")
+parser.add_argument("--output", help="输出文件路径")
 ```
 
-## Output Formatting
+**输出格式**：
 
-Use consistent indicators:
+```python
+# 基础
+print(f"✓ Saved: {path} ({size:.1f} KB)")
+print(f"✗ Error: {message}", file=sys.stderr)
 
-- `✓` - Success (file saved, processing completed)
-- `✗` - Error (with context)
-
-```bash
-# Basic
-echo "✓ Saved: $output_path (${file_size} bytes)"
-echo "✗ Error: $message" >&2
-
-# With color (optional)
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly NC='\033[0m' # No Color
-
-echo -e "${GREEN}✓${NC} Success"
-echo -e "${RED}✗${NC} Error occurred" >&2
+# 数据格式
+# CSV: UTF-8, 带表头, ISO 8601 日期, 2-4 位小数
+# JSON: snake_case 键名, ISO 8601 日期, 包含元数据
+# 控制台: 列对齐, 包含单位
 ```
 
-## Input/Output Standards
+---
 
-### Input
+## 快速检查清单
 
-**Positional Arguments:**
+### 必需项
 
-```bash
-#!/usr/bin/env bash
+- [ ] PEP 723 元数据块存在
+- [ ] 所有依赖列出版本约束
+- [ ] 模块文档字符串包含使用示例
+- [ ] **所有执行示例使用 `uv run`**
+- [ ] 错误处理包含友好消息
+- [ ] 异常链已保留 (`raise ... from e`)
+- [ ] `--help` 参数已实现
 
-INPUT_FILE="${1:-}"
-OUTPUT_DIR="${2:-./output}"
+### 完成前检查
 
-if [[ -z "$INPUT_FILE" ]]; then
-    echo "✗ Error: Input file is required" >&2
-    exit 1
-fi
-```
+- [ ] **运行 `uvx ruff check .` 验证无问题**
+- [ ] 测试 `uv run script.py --help`
 
-**Flag-based Arguments (getopts):**
+### 推荐项
 
-```bash
-VERBOSE=false
-OUTPUT_FILE=""
-DRY_RUN=false
-
-while getopts "hvno:" opt; do
-    case $opt in
-        h) show_help; exit 0 ;;
-        v) VERBOSE=true ;;
-        n) DRY_RUN=true ;;
-        o) OUTPUT_FILE="$OPTARG" ;;
-        *) echo "✗ Error: Invalid option" >&2; exit 1 ;;
-    esac
-done
-
-shift $((OPTIND-1))
-```
-
-**Long Options (using bash built-in):**
-
-```bash
-INPUT_FILE=""
-OUTPUT_FILE=""
-
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --input)
-            INPUT_FILE="$2"
-            shift 2
-            ;;
-        --output)
-            OUTPUT_FILE="$2"
-            shift 2
-            ;;
-        --help|-h)
-            show_help
-            exit 0
-            ;;
-        *)
-            echo "✗ Error: Unknown option: $1" >&2
-            exit 1
-            ;;
-    esac
-done
-```
-
-### Output
-
-**Recommended Directory Structure:**
-
-```
-project/
-├── scripts/           # Executable scripts
-│   └── script.sh
-├── data/              # Input data files
-│   └── sample.txt
-└── results/           # Output results
-    └── output.txt
-```
-
-**Path Handling:**
-
-```bash
-# Get script directory
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-
-# Define output directory
-OUTPUT_DIR="${OUTPUT_DIR:-$SCRIPT_DIR/results}"
-mkdir -p "$OUTPUT_DIR"
-
-# Output file path
-OUTPUT_FILE="$OUTPUT_DIR/output.txt"
-```
-
-**Data Format:**
-
-- Text files: UTF-8 encoding, Unix line endings
-- CSV: Comma-separated, headers in first row
-- JSON: Use `jq` for formatting
-- Console: Aligned columns, include units
-
-```bash
-# CSV output
-echo "timestamp,value,status" > "$OUTPUT_FILE"
-echo "$(date +%Y-%m-%d),$value,$status" >> "$OUTPUT_FILE"
-
-# JSON output (with jq)
-jq -n \
-    --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-    --arg value "$value" \
-    --arg status "$status" \
-    '{timestamp: $timestamp, value: ($value | tonumber), status: $status}' > "$OUTPUT_FILE"
-```
-
-## Best Practices
-
-1. **Use `readonly` for constants**
-
-   ```bash
-   readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-   readonly MAX_RETRIES=3
-   ```
-
-2. **Use `local` for function variables**
-
-   ```bash
-   process_item() {
-       local item="$1"
-       local result
-       result=$(process "$item")
-       echo "$result"
-   }
-   ```
-
-3. **Quote variables to prevent word splitting**
-
-   ```bash
-   # Good
-   "$file"
-   "${array[@]}"
-
-   # Bad (unquoted)
-   $file
-   ${array[@]}
-   ```
-
-4. **Use `[[` for tests instead of `[`**
-
-   ```bash
-   # Good
-   if [[ -f "$file" ]]; then
-       # ...
-   fi
-
-   # Avoid
-   if [ -f "$file" ]; then
-       # ...
-   fi
-   ```
-
-5. **Avoid backticks, use `$()` for command substitution**
-
-   ```bash
-   # Good
-   result=$(command)
-
-   # Avoid
-   result=`command`
-   ```
-
-## Performance Considerations
-
-- **Small files**: Native bash, built-in commands
-- **Large files**: Use `awk`, `sed`, or specialized tools
-- **Parallel processing**: Use `xargs -P` or GNU `parallel`
-- **Network operations**: Use timeout and retries
-
-## Quick Checklist
-
-### Required
-
-- [ ] Shebang with `#!/usr/bin/env bash`
-- [ ] Script header with name, description, usage
-- [ ] `set -euo pipefail` for error handling
-- [ ] Help message (`-h, --help`)
-- [ ] Error messages to stderr (`>&2`)
-
-### Recommended
-
-- [ ] Function documentation comments
-- [ ] `readonly` for constants
-- [ ] `local` for function variables
-- [ ] Consistent output format (`✓`/`✗`)
-- [ ] Exit codes (0=success, 1=error)
-- [ ] Dependency checks
-- [ ] Dry-run mode when applicable
+- [ ] 复杂函数添加文档字符串
+- [ ] 参数和返回值使用类型提示
+- [ ] 仅使用绝对导入（禁用相对导入）
+- [ ] 一致的输出格式 (`✓`/`✗`)
+- [ ] 退出码 (0=成功, 1=错误)
+- [ ] 适用时添加 dry-run 模式
