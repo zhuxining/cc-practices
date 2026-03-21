@@ -9,12 +9,13 @@ description: 指导 Agent 助理如何在共享的 MyObsidian vault 中进行知
 
 ## First Principle
 
-首次操作 vault 前：
+首次操作 vault 前，读取共享规范：
 
-1. **读取共享规范**：`obsidian vault=MyObsidian read file="AGENTS"`
-   AGENTS.md 包含目录结构、标签体系、frontmatter 标准、链接规范等。同一 session 内已读过则跳过。
-2. **加载知识索引**（如存在）：`obsidian vault=MyObsidian search query="" path="_AgentSpace"`
-   快速了解已积累的知识，便于后续 READ 操作。
+```bash
+obsidian vault=MyObsidian read file="AGENTS"
+```
+
+AGENTS.md 包含目录结构、标签体系、frontmatter 标准、链接规范等。同一 session 内已读过则跳过。
 
 ## CLI Usage
 
@@ -50,7 +51,7 @@ CLI 不支持"在指定标题下插入内容"或"替换某个 section 内容"。
 
 ```bash
 # 获取 vault 根路径
-obsidian vault=MyObsidian info=path
+open -a Obsidian && sleep 2 && obsidian vault info=path
 
 # daily note：获取当日笔记相对路径
 obsidian vault=MyObsidian daily:path
@@ -62,6 +63,9 @@ obsidian vault=MyObsidian search query="笔记名"
 ### Step 2 — 读取当前内容并定位 section
 
 ```bash
+# 快速查看文件标题结构（可选，长文件时有用）
+obsidian vault=MyObsidian outline file="笔记名"
+# 读取全文
 obsidian vault=MyObsidian read file="笔记名"
 ```
 
@@ -79,16 +83,16 @@ obsidian vault=MyObsidian read file="笔记名"
 - `old_string` 必须包含足够上下文确保唯一匹配
 - 涉及 `#Private` / `#Key` 标签笔记时，拒绝操作并告知用户
 
-## Knowledge Interaction Protocol
+## Knowledge Protocol
 
 `_AgentSpace/` 是 Agent 自主管理的知识工作目录（详见 AGENTS.md）。目录内部结构由 Agent 自行决定和维护。
 
-**`_AgentSpace/` 分布模型**：vault 中存在多个 `_AgentSpace/`，分布在各领域目录下（详见 AGENTS.md 的 _AgentSpace Convention）。典型目录如 `11_Works/_AgentSpace/`、`12_Trading/_AgentSpace/`、`13_Agent/_AgentSpace/`、`19_Misc/_AgentSpace/`、`20_Projects/_AgentSpace/`、`31_WebClips/_AgentSpace/`。LEARN 时根据内容所属领域选择对应 `_AgentSpace/`；READ 搜索时使用 `path="_AgentSpace"` 可匹配所有领域下的 `_AgentSpace/` 目录。
+**`_AgentSpace/` 分布模型**：vault 中存在多个 `_AgentSpace/`，分布在各领域目录下（详见 AGENTS.md 的 _AgentSpace Convention）。LEARN 时根据内容所属领域选择对应 `_AgentSpace/`；READ 搜索时在 query 中使用 `path:_AgentSpace` 可匹配所有领域下的 `_AgentSpace/` 目录。
 
 以下操作适用于所有 `_AgentSpace/` 目录下的笔记。
 
 - **READ**：对话涉及已知概念时，搜索 `_AgentSpace/` 并融入回答（执行者：Knowledge Retriever）
-- **LEARN**：需要记录新知识到 `_AgentSpace/` 时，创建知识笔记（执行者：Note Creator 判断目标为 _AgentSpace 时、Knowledge Organizer 整理 WebClips 时）
+- **LEARN**：需要记录新知识到 `_AgentSpace/` 时，创建知识笔记（执行者：Note Creator、Clipping Save、Knowledge Organizer）
 - **LINK**：创建/更新知识笔记时，使用 `[[wikilinks]]` 引用相关已有笔记（利用 Obsidian 原生反向链接）
 - **UPDATE**：更新已有知识笔记时，直接修改内容并更新 frontmatter `updated` 字段（执行者：Note Editor）
 
@@ -106,16 +110,16 @@ obsidian vault=MyObsidian read file="笔记名"
 识别用户意图，自动切换对应角色。多个角色可能匹配时，按以下优先级选择：
 
 1. 涉及每日笔记内容 → Daily Notes Collaborator
-2. 涉及每日笔记任务 → Task Manager
-3. 涉及保存网页内容 → Clipping Save
-4. 涉及 `_AgentSpace` 整理/审计 → Knowledge Organizer
+2. 涉及每日笔记任务 → Daily Task Manager
+3. 涉及保存/提炼网页内容 → Clipping Save
+4. 涉及整理 WebClips / 整理某领域知识 → Knowledge Organizer
 5. 涉及查找信息 → Knowledge Retriever
 6. 涉及修改已有笔记 → Note Editor
 7. 涉及创建新笔记 → Note Creator
 
 ### Daily Notes Collaborator
 
-负责向每日笔记追加内容，以及日末整理。**追加任务由 Task Manager 负责**。
+负责向每日笔记追加内容，以及日末整理。**追加任务由 Daily Task Manager 负责**。
 
 **每日笔记结构约定**：
 
@@ -174,38 +178,37 @@ obsidian vault=MyObsidian daily:append content="<内容>"
    obsidian vault=MyObsidian create path="<上一步路径>" content="<重组后全文>" overwrite silent
    ```
 
-### Task Manager
+### Daily Task Manager
 
-当用户涉及任务查看或更新时：
+专注于每日笔记中的任务管理。当用户涉及当日或历史每日笔记的任务查看/更新时触发。
 
 ```bash
-# 新增任务写入笔记顶部（prepend 确保任务显示在最前）
+# 新增任务到当日笔记顶部
 obsidian vault=MyObsidian daily:prepend content="- [ ] 任务描述"
 
-# 查看任务
-obsidian vault=MyObsidian tasks daily            # 当日所有任务
-obsidian vault=MyObsidian tasks todo path=<路径> # 指定笔记未完成任务
-obsidian vault=MyObsidian tasks done path=<路径> # 指定笔记已完成任务
-obsidian vault=MyObsidian tasks todo path="01_Daily"  # 扫描所有每日笔记
+# 查看当日任务
+obsidian vault=MyObsidian tasks daily
+# 汇总近期每日笔记中的未完成任务
+obsidian vault=MyObsidian tasks todo path="01_Daily"
 
-# 标记完成（line 为任务在文件中的行号）
+# 标记当日任务完成
 obsidian vault=MyObsidian task daily line=<行号> done
-obsidian vault=MyObsidian task path=<路径> line=<行号> done
+# 标记历史每日笔记任务完成
+obsidian vault=MyObsidian task path="01_Daily/YYYY/MM月/YYYY-MM-DD.md" line=<行号> done
 ```
 
 **工作流**：
 
 | 场景 | 操作 |
 |------|------|
-| "今天还有什么没做" | `tasks daily todo` 展示 |
-| "完成了 XXX"（当日） | `tasks daily` 找行号 → `task daily line=N done` |
-| "完成了 XXX"（历史） | 用户告知日期或笔记名 → `tasks todo path=<路径>` 找行号 → `task path=<路径> line=N done` |
-| "最近有哪些没做完的" | `tasks todo path="01_Daily"` 汇总，按笔记（日期）分组展示 |
-| 迁移历史未完成任务 | 追加到当日笔记，原笔记标记为 `[-]` 并添加 `(已迁移至[[<笔记名>]])` |
+| "今天还有什么没做" | `tasks daily` 展示当日任务 |
+| "完成了 XXX" | `tasks daily` 找行号 → `task daily line=N done` |
+| "最近有哪些没做完的" | `tasks todo path="01_Daily"` 汇总，按日期分组展示 |
+| 迁移历史未完成任务 | 追加到当日笔记顶部，原任务标记为 `[-]` 并添加 `(已迁移至[[<今日笔记名>]])` |
 
 ### Clipping Save
 
-将 **search-and-fetch** 已提取分析的网页内容保存到 Obsidian vault。
+将 **search-and-fetch** 已提取分析的网页内容保存到 Obsidian vault，并即时完成知识提炼。
 
 **触发条件**：
 
@@ -218,7 +221,7 @@ obsidian vault=MyObsidian task path=<路径> line=<行号> done
 
 触发后依次执行：
 
-**Step 1 — 提炼并追加到每日笔记**
+**Step 1 — 摘要追加到每日笔记**（始终执行）
 
 按 Daily Notes Collaborator 的 section 存在性检查通用规则处理 `### 🔗 Links` section：
 
@@ -244,51 +247,65 @@ obsidian vault=MyObsidian daily:append content="<H4 条目>"
 **📚 Resources**: 书名               ← 书籍/论文（如有）
 ```
 
-**Step 2 — 询问是否保存完整页面**
+**Step 2 — 内容分流**
 
-追加后询问用户："要保存完整页面到 WebClips 吗？"
+Agent 基于内容特征判断价值类型，向用户建议处置方式（一句话说明理由），用户确认或调整后执行：
 
-- **是** → 全文保存到 `31_WebClips/_AgentSpace/<标题>.md`，H4 标题行末附 ` → [[标题]]`
-- **否** → 结束
+| 内容特征 | 建议处置 | 操作 |
+|---------|---------|------|
+| 包含持久知识（概念、规则、最佳实践、架构模式等） | **提炼到知识库** | 执行 Step 3 |
+| 需要保留原文做参考（教程、长文、数据报告等） | **存档到 WebClips** | 全文保存到 `31_WebClips/<标题>.md` |
+| 时效性内容（新闻、公告、价格信息等）或低价值 | **仅保留摘要** | 不额外保存，流程结束 |
 
-例外：若用户原始消息中已明确说"保存全文"、"clip 完整页面"、"save full"、"全部保存"、"剪切并保存"等，则跳过询问直接执行保存。
+例外：用户原始消息中已明确指定处置方式（如"保存全文"、"记到知识库"、"clip"）时，跳过询问直接执行。
+
+**Step 3 — 知识提炼**（仅「提炼到知识库」时执行）
+
+1. 从 search-and-fetch 输出中提取核心知识点（概念、术语、规则、模式）
+2. 搜索 `_AgentSpace/` 检查是否已有相关笔记（READ），避免重复
+3. 已有相关笔记 → UPDATE 补充新信息；无相关笔记 → LEARN 创建新知识笔记
+4. 使用 `[[wikilinks]]` LINK 到已有知识
+5. 每日笔记的 H4 条目末尾标注 `→ 已提炼至 [[知识笔记名]]`
 
 ### Knowledge Organizer
 
-维护 `_AgentSpace/` 知识体系：从 WebClips 提炼知识、审计已有内容、维护知识图谱。
+整理 `31_WebClips/` 剪切内容，提炼知识到各领域 `_AgentSpace/`。
 
-**触发词**：整理知识、整理剪切、整理 WebClips、整理收藏、审计知识库
+**触发词**：整理知识、整理剪切、整理 WebClips、整理收藏
 
-**WebClips 整理**：
+**WebClips 批量整理**：
 
-1. 列出剪切内容：`obsidian vault=MyObsidian search query="" path="31_WebClips"`
+`31_WebClips/` 为用户与 Agent 共享空间。未整理的剪切留在根目录，整理完成后原文归档到 `31_WebClips/_Archive/`。
+
+1. 列出待整理内容：`obsidian vault=MyObsidian search query="path:31_WebClips -path:_Archive"`
 2. 逐条读取，分析内容所属领域（参考 AGENTS.md 目录结构）
 3. 对每篇剪切执行：
    - **提炼**：从全文中提取核心概念、术语、规则等知识点
-   - **归属**：判断应归入哪个领域的 `_AgentSpace/`（如 `11_Works/_AgentSpace/`、`12_Trading/_AgentSpace/`），无法明确归类时放入 `19_Misc/_AgentSpace/`
+   - **归属**：判断应归入哪个领域的 `_AgentSpace/`，无法明确归类时放入 `19_Misc/_AgentSpace/`
    - **LEARN**：为每个知识点触发 Knowledge Protocol 的 LEARN 操作，创建独立知识笔记
    - **LINK**：触发 LINK 操作，用 `[[wikilinks]]` 与已有知识建立关联
 4. 汇总整理计划呈现给用户：每篇剪切 → 提炼了哪些知识点 → 归入哪个领域
-5. **用户确认整理计划后执行**（单个文件操作不再逐一确认，遵循 AGENTS.md 的 _AgentSpace 自主管理权限）：创建知识笔记，原剪切文件保留（作为原始来源引用）
+5. **用户确认整理计划后执行**（遵循 AGENTS.md 的 _AgentSpace 自主管理权限）：创建知识笔记，用 `obsidian vault=MyObsidian move file="剪切名" to="31_WebClips/_Archive/剪切名.md"` 将原文归档（自动更新 wikilinks 引用）
 
-**知识审计**（用户说"审计知识库"时触发）：
+**`_AgentSpace/` 维护策略**：
 
-1. 检查 `_AgentSpace/` 内笔记的准确性和时效性，标记过时内容
-2. 合并重复内容，自主创建分类目录
-3. 维护 `_AgentSpace/_KnowledgeGraph/` 索引，确保知识间关联准确
-4. 生成缺口报告 `_AgentSpace/_KnowledgeGraph/_gap_report.md`，列出已知但尚未记录的概念
+不设独立审计流程，维护分布在日常操作中：
+
+- **写入时自治**：每次 LEARN/UPDATE 时，检查同领域 `_AgentSpace/` 内是否有重复或可合并的笔记，顺手处理
+- **按领域触发**：用户说"整理 XX 领域知识"时，审计该领域的 `_AgentSpace/`（去重、清理过时、优化分类）
+- **WebClips 整理附带**：整理 WebClips 写入目标 `_AgentSpace/` 时，自然审视该领域现有内容质量
 
 ### Knowledge Retriever
 
 当用户提问或需要查找信息时：
 
 1. 优先搜索 vault（含 `_AgentSpace/` 目录）：`obsidian vault=MyObsidian search query="关键词"`
-2. 针对知识库精确搜索（全局结果可能较多，精确搜索确保专业知识不被淹没）：`obsidian vault=MyObsidian search query="关键词" path="_AgentSpace"`
+2. 针对知识库精确搜索（全局结果可能较多，精确搜索确保专业知识不被淹没）：`obsidian vault=MyObsidian search query="关键词 path:_AgentSpace"`
 3. 回答时引用已有笔记（如"参见 [[笔记名]]"）
 4. 若搜索返回空结果或内容不足：
    - 告知用户"vault 中未找到相关笔记"
    - 委托 **search-and-fetch** skill 进行外部搜索补充回答
-   - 可建议将搜索结果保存为新笔记（触发 Note Creator）或保存到每日笔记（触发 Clipping Save）
+   - 可建议将搜索结果保存为新笔记（触发 Note Creator）或追加到每日笔记（触发 Daily Notes Collaborator）
 
 ### Note Editor
 
