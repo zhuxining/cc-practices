@@ -1,6 +1,6 @@
 ---
 paths:
-- "docs/design/test/*.md"
+- "docs/test/*.md"
 ---
 
 # 测试规格规范
@@ -143,8 +143,8 @@ paths:
 
 | 文档 | 回答的问题 | 存放位置 |
 |------|-----------|---------|
-| **测试计划** | "测什么、在哪个层级测、用什么标准判断完成" | `docs/design/test/plan-*.md` |
-| **测试用例** | "具体输入是什么、预期输出是什么" | `docs/design/test/cases-*.md` |
+| **测试计划** | "测什么、在哪个层级测、用什么标准判断完成" | `docs/test/plan-*.md` |
+| **测试用例** | "具体输入是什么、预期输出是什么" | `docs/test/cases-*.md` |
 
 ### 4.2 测试计划（Test Plan）
 
@@ -212,7 +212,7 @@ paths:
 **REQUIRED** 目录结构：
 
 ```
-docs/design/test/
+docs/test/
 ├── 00-overview.md             # 测试文档总览（唯一，导航入口）
 ├── 10-plan-{system}.md        # 测试计划
 ├── 20-cases-{module}.md       # 测试用例（按模块拆分）

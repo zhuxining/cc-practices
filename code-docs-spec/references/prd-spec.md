@@ -1,6 +1,6 @@
 ---
 paths:
-- "docs/design/prd/*.md"
+- "docs/prd/*.md"
 ---
 
 # 功能需求规格规范
@@ -199,7 +199,7 @@ Then [系统产生的可观测结果]
 **REQUIRED** 目录结构：
 
 ```
-docs/design/prd/
+docs/prd/
 ├── 00-overview.md               # PRD 总览文档（唯一，导航入口）
 ├── NN-{feature}.md              # Feature 文档（两位数字序号，表示阅读顺序）
 ├── NN.MM-{sub-feature}.md       # 子 Feature 文档（NN.MM 格式）

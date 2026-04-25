@@ -1,13 +1,13 @@
 ---
-name: code-design-docs-spec
-description: 软件设计文档规范集合，包含架构设计文档(arch-spec)、功能需求规格(prd-spec)和测试规格(test-spec)的完整规范。当需要编写或维护设计文档时，根据文档类型引用对应规范，按规范中的 Agent 执行工作流操作。
+name: code-docs-spec
+description: 软件设计文档规范集合，包含架构设计文档(architecture-spec)、功能需求规格(prd-spec)和测试规格(test-spec)的完整规范。当需要编写或维护设计文档时，根据文档类型引用对应规范，按规范中的 Agent 执行工作流操作。
 ---
 
 # 设计文档规范
 
 本技能提供三套规范，覆盖软件设计的主要文档类型：
 
-1. **架构设计文档** (`arch-spec.md`) — 系统架构、模块边界、接口契约、技术决策
+1. **架构设计文档** (`architecture-spec.md`) — 系统架构、模块边界、接口契约、技术决策
 2. **功能需求规格** (`prd-spec.md`) — 用户可见功能、验收标准、范围界定、非功能需求
 3. **测试规格** (`test-spec.md`) — 测试策略、测试边界、测试用例
 
@@ -19,14 +19,14 @@ description: 软件设计文档规范集合，包含架构设计文档(arch-spec
 
 ```
 变更涉及...
-├── 架构/接口/技术决策 → arch-spec
+├── 架构/接口/技术决策 → architecture-spec
 ├── 用户可见功能/需求范围 → prd-spec
 └── 测试策略/测试边界/测试用例 → test-spec
 ```
 
 **步骤 2：读取对应规范文件**
 
-- 架构设计 → `references/arch-spec.md`
+- 架构设计 → `references/architecture-spec.md`
 - 功能需求 → `references/prd-spec.md`
 - 测试规格 → `references/test-spec.md`
 
@@ -61,7 +61,7 @@ description: 软件设计文档规范集合，包含架构设计文档(arch-spec
 
 ```
 docs/design/
-├── arch/
+├── architecture/
 │   ├── 00-overview.md
 │   ├── NN-module.md
 │   ├── NN.MM-sub-module.md

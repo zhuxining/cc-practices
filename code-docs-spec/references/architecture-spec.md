@@ -1,6 +1,6 @@
 ---
 paths:
-- "docs/design/arch/*.md"
+- "docs/architecture/*.md"
 ---
 
 # 架构设计与文档规范
@@ -170,7 +170,7 @@ paths:
 | **回答的问题** | "为什么这样设计" | "当前是什么样" |
 | **更新驱动** | 设计决策变更时更新 | 代码/配置变更时同步更新 |
 | **与代码的关系** | 代码实现设计文档的意图，代码重构不影响设计文档 | 代码变了参考文档必须跟着变，否则删除 |
-| **存放位置** | `docs/design/architecture/` 根目录 | `docs/design/architecture/reference/` |
+| **存放位置** | `docs/architecture/` 根目录 | `docs/architecture/reference/` |
 
 设计文档进一步分为两种：
 
@@ -335,7 +335,7 @@ paths:
 **REQUIRED** 目录结构：
 
 ```
-docs/design/architecture/
+docs/architecture/
 ├── 00-overview.md              # 总览文档（唯一，不按版本拆分）
 ├── NN-kebab-case.md            # 主题子模块文档（NN = 两位数字，表示阅读顺序）
 ├── NN.MM-kebab-case.md         # 子文档（MM = 子序号）
