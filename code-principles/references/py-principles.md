@@ -1,174 +1,129 @@
 ---
-paths: 
+paths:
 - "**/*.py"
 ---
 
 # Python 代码规范
 
-使用 **ruff**（格式化与静态分析）和 **ty**（类型检查）作为代码质量工具链。
+编写**类型清晰、可读、可维护**的 Python 代码。优先使用直接、惯用的实现，避免不必要的技巧和抽象。
 
-## 快速参考
+## 项目约束
 
-- **格式化检查**: `ruff check --fix`
-- **类型检查**: `ty check --fix`
+- 修改前检查 `pyproject.toml`、Python 版本、依赖、工具配置和现有代码风格
+- 遵循项目已有的格式化器、类型检查器、测试框架和异步运行时
+- 使用新语法或标准库 API 前，确认项目的 `requires-python` 和 CI 支持
 
----
+## 类型注解
 
-## 不确定时参考
+- 公开 API、跨模块接口和不易推断的函数必须标注参数及返回类型
+- 尽量使用最新范式，
+    - 如 `X | Y` 和 `X | None`
+    - 如 `list[T]`、`dict[K, V]`、`tuple[T, ...]` 等内置泛型
+    - 如 `TypeAlias` 或 `type` 语句定义别名
+- 避免让 `Any` 跨越模块边界；动态数据应尽早验证并转换为具体类型
+- 使用 `object` 表示任意对象但使用前必须收窄的类型；`object` 不是 `Any` 的直接替代
+- 注解不等于运行时验证；外部输入仍需解析和校验
+- 类型忽略必须指定错误码并说明原因，避免宽泛的 `# type: ignore`
 
-### 权威来源
+## 数据建模
 
-| 主题 | 官方参考 |
-|------|---------|
-| 类型系统 | [typing.readthedocs.io](https://typing.readthedocs.io/) |
-| ty类型规则 | [docs.astral.sh](https://docs.astral.sh/ty/reference/rules/) |
-| 语言特性 | [docs.python.org](https://docs.python.org/3/) |
-| 标准库 | [docs.python.org/3/library](https://docs.python.org/3/library/) |
-| 版本变更 | [Python Release Notes](https://www.python.org/downloads/) |
+- 使用 `dataclass` 表达以字段为主的数据对象，如有引入Pydantic V2则使用该库
+- 根据可变性、继承和内存需求决定是否使用 `frozen=True` 或 `slots=True`，不要默认开启
+- 使用 `TypedDict` 描述具有固定字段的字典数据，使用 `Protocol` 表达结构化接口
+- 使用 `Enum` 或 `Literal` 表达有限取值，避免散落的魔法字符串和数字
+- 不使用可变对象作为默认参数；使用 `None` 哨兵或 `default_factory`
+- 模块级常量使用大写命名；需要静态约束时标注 `Final`
+- 避免无约束的全局可变状态
 
-### 关键提示
+## 惯用写法
 
-- 从 `pyproject.toml` 确认 Python 版本
-- 现有代码与文档冲突时，向用户确认后执行
+- 路径处理代码使用 `pathlib.Path`；
+- 使用 f-string 格式化面向人的字符串；日志参数遵循日志框架的惰性格式化方式
+- 使用 `enumerate()` 迭代索引和值，使用 `.items()` 迭代字典键值
+- 对长度不同应视为错误的并行序列，使用 `zip(..., strict=True)`
+- `match` 仅在结构化模式匹配比 `if/elif` 更清晰时使用
+- 海象运算符 `:=` 仅用于减少重复计算且不降低可读性的场景
+- 资源使用上下文管理器释放，确保异常和提前返回时也能正确清理
 
----
+## 异常处理
 
-## 核心原则
+- 捕获当前层能够处理、转换或补充上下文的具体异常
+- 仅在请求、任务或进程边界捕获 `Exception`，并执行明确的记录、恢复或失败策略
+- 避免裸 `except:`；确需捕获 `BaseException` 时，完成清理后必须重新抛出
+- 转换异常时使用 `raise ... from err` 保留异常链；有意隐藏底层细节时才使用 `from None`
+- 不要静默吞掉异常；有意忽略时应限制异常类型并说明原因
+- 需要清理时优先使用上下文管理器或 `finally`，不要捕获后无意义地原样抛出
+- 自定义异常按调用者可采取的恢复方式设计，不为每个内部失败点创建异常类型
 
-编写**类型安全、可读性强、可维护**的 Python 代码。以显式意图优先，避免不必要的技巧。
+## 函数与模块
 
-### 类型注解
+- 函数保持职责清晰；复杂流程拆分为有意义的步骤，不按固定行数机械拆分
+- 当位置参数容易混淆时，使用 keyword-only 参数
+- 公开 API 应记录用途、参数、返回值、异常和重要副作用
+- 仅在需要定义稳定导出面或星号导入行为时使用 `__all__`
+- 避免昂贵或难以控制的导入时副作用；有意的注册行为必须可预测且有测试
+- 保持模块依赖方向清晰，避免循环导入；不要用局部导入长期掩盖架构问题
+- I/O、时间、随机源和外部客户端应有清晰边界，便于替换和测试
 
-- 所有函数的参数和返回值必须有类型注解
-- 使用 `X | Y` 代替 `Union[X, Y]`，使用 `X | None` 代替 `Optional[X]`
-- 使用 `list[T]`、`dict[K, V]`、`tuple[T, ...]` 而非 `List`、`Dict`、`Tuple`
-- 避免使用 `Any`；如类型确实未知，优先使用 `object` 或 `Unknown`
-- 对于复杂类型，使用 `TypeAlias` 或 `type` 语句定义别名（Python 3.12+）
-- Python 3.14 中注解默认懒求值，无需 `from __future__ import annotations`
+## 异步与并发
 
-```python
-# Good
-def process(items: list[str], limit: int | None = None) -> dict[str, int]: ...
+- 不要在事件循环中执行阻塞 I/O 或长时间 CPU 计算
+- 调用同步阻塞 API 时使用 `asyncio.to_thread()` 或项目已有 executor，并限制并发和超时
+- 相关任务需要共同生命周期和失败传播时，优先使用 `asyncio.TaskGroup`
+- 不要用 `TaskGroup` 机械替换语义不同的 `gather`、独立任务或队列
+- 后台任务必须有明确所有者负责保留引用、处理异常、取消和等待关闭
+- 捕获取消后完成必要清理，并继续传播取消
+- 使用锁保护共享可变状态；不要假设 GIL 能保证复合操作和所有运行环境的线程安全
 
+## 安全
 
-# Bad
-from typing import Optional, List, Dict
+- 使用参数化查询，不拼接 SQL
+- 执行外部命令时传递参数列表并避免 `shell=True`
+- 不对不可信内容使用 `eval`、`exec`、`pickle` 或其他可执行反序列化机制
+- 密钥和密码不得写入源码、日志或异常；使用项目认可的 secret 管理方式
+- 安全令牌使用 `secrets`，不要使用 `random`
+- 验证外部输入的结构、范围和业务约束，并限制大小、深度、数量、时间和并发
+- 文件、URL、归档和重定向处理应防范路径遍历、符号链接、Zip Slip 和 SSRF
+- 输出到 HTML、URL、命令或日志时，按目标上下文正确编码，不依赖通用“清理字符串”
 
+## 性能
 
-def process(items: List[str], limit: Optional[int] = None) -> Dict[str, int]: ...
-```
-
-### 现代 Python 语法
-
-- 使用 `match` 语句替代复杂的 `if/elif` 链（Python 3.10+）
-- 使用 `dataclass`（或 `@dataclass(slots=True, frozen=True)`）定义数据结构
-- 优先使用 `pathlib.Path` 而非 `os.path`
-- 使用 f-string 进行字符串格式化；在 Python 3.14 中可用 t-string（PEP 750）进行安全模板化
-- 使用海象运算符 `:=` 避免重复计算（谨慎使用，保持可读性）
-- 用 `enumerate()` 替代手动索引，用 `zip()` 并行迭代
-
-```python
-# Good
-for i, item in enumerate(items):
-    ...
-
-for key, value in mapping.items():
-    ...
-
-# Bad
-for i in range(len(items)):
-    item = items[i]
-```
-
-### 不可变性与常量
-
-- 对不会修改的集合使用 `tuple` 而非 `list`
-- 用 `Final` 标注模块级常量
-- 用 `@dataclass(frozen=True)` 或 `NamedTuple` 定义不可变数据结构
-- 避免全局可变状态
-
-### 异常处理
-
-- 捕获具体异常类型，而非裸 `except:` 或 `except Exception:`
-- 用 `raise ... from err` 保留异常链
-- 不要捕获异常后直接 `pass` 或无意义地重新抛出
-- 优先用早返回（guard clause）减少嵌套
-
-```python
-# Good
-try:
-    result = parse(data)
-except ValueError as err:
-    raise ProcessingError("Invalid data format") from err
-
-# Bad
-try:
-    result = parse(data)
-except:
-    pass
-```
-
-### 函数与模块设计
-
-- 保持函数职责单一，认知复杂度低
-- 使用关键字参数提升调用处可读性（`def func(*, key: str)`）
-- 用 `__all__` 明确声明公开 API
-- 避免在模块顶层执行有副作用的代码
-- 优先使用纯函数（无副作用），将 I/O 推到边界层
-
-### 异步代码
-
-- 使用 `async/await`，避免直接调用 `asyncio.get_event_loop()`
-- 用 `asyncio.TaskGroup`（Python 3.11+）并发管理任务，替代裸 `asyncio.gather`
-- 不要在 async 函数中执行阻塞 I/O，使用 `asyncio.to_thread()` 卸载
-- 用 `async with` 和 `async for` 管理异步资源
-
-```python
-# Good
-async with asyncio.TaskGroup() as tg:
-    task1 = tg.create_task(fetch(url1))
-    task2 = tg.create_task(fetch(url2))
-```
-
-### 安全
-
-- 不要用 `eval()` 或 `exec()` 执行动态代码
-- 使用参数化查询，避免 SQL 字符串拼接
-- 不要将密钥、密码硬编码在源码中，使用环境变量或 secrets 管理
-- 对用户输入进行验证和清理（推荐 `pydantic`）
-- 使用 `secrets` 模块生成安全随机数，而非 `random`
-
-### 性能
-
-- 优先使用生成器表达式而非列表推导式（当不需要随机访问时）
-- 避免在循环内进行重复的属性查找，提前绑定到局部变量
-- 用 `__slots__` 减少实例内存占用（或 `@dataclass(slots=True)`）
-- 使用 `collections.deque` 代替列表实现队列
-- 避免频繁的小字符串拼接，用 `"".join(parts)` 或 f-string
-
----
+- 先使用 profiler 或 benchmark 定位瓶颈，再优化
+- 需要完整结果、重复访问或长度时使用列表；单遍流式处理大量数据时考虑生成器
+- 频繁从队首增删时使用 `collections.deque`，不要用列表模拟队列
+- 大量字符串片段使用 `str.join()` 或流式写入；少量字符串选择最清晰的写法
+- 仅在测量证明有收益时使用 `slots`、局部变量缓存等微优化
+- 优先优化算法、数据库访问和 I/O 次数，而不是解释器层面的细枝末节
 
 ## 测试
 
-- 使用 `pytest`，测试文件以 `test_` 前缀命名
-- 每个测试只验证一个行为
-- 使用 `pytest.fixture` 管理测试依赖，避免在测试间共享可变状态
-- 用 `pytest.mark.parametrize` 替代重复的测试逻辑
-- Mock 外部依赖（网络、文件系统、时间），保持单元测试快速稳定
-- 不要在提交的代码中保留 `pytest.mark.skip` 或 `.only`
+- 遵循项目已有测试框架和目录约定
+- 测试围绕一个可描述的场景组织，可以验证该场景下多个相关结果
+- 覆盖成功路径、失败路径和关键边界；修复 bug 时添加回归测试
+- 对输入不同而断言结构相同的测试使用参数化，避免复制测试逻辑
+- Mock 外部或非确定性边界，不要耦合内部实现细节；合适时使用 fake 或依赖注入
+- 时间、随机和并发测试必须可控，并设置明确超时
+- skip/xfail 必须注明原因和适用条件；不得用于长期掩盖关键回归失败
 
----
+## 提交前检查
 
-## ruff 无法覆盖的关注点
+优先运行项目已有验证命令。没有项目约定且相应工具已配置时，运行：
 
-ruff 和 ty 会自动捕获大多数问题，手动关注：
+```bash
+ruff format --check .
+ruff check .
+ty check
+pytest
+```
 
-1. **业务逻辑正确性** — 工具无法验证算法是否符合需求
-2. **有意义的命名** — 变量、函数、类名应清晰表达意图
-3. **架构决策** — 模块划分、依赖方向、接口设计
-4. **边界条件** — 空集合、零值、超大输入、并发竞争
-5. **文档** — 对复杂逻辑添加注释，但优先自文档化代码
+`ruff check --fix`、`ruff format` 和 `ty check --fix` 会修改源码，仅在明确需要应用并审查自动修复时运行。
 
----
+## 权威来源（不确定时参考）
 
-提交前运行 `ruff check --fix && ty check --fix` 确保合规。
+| 主题 | 官方参考 |
+|------|---------|
+| 语言与标准库 | [Python Documentation](https://docs.python.org/3/) |
+| 类型系统 | [Typing Documentation](https://typing.python.org/) |
+| 打包与项目元数据 | [Python Packaging User Guide](https://packaging.python.org/) |
+| Ruff | [Ruff Documentation](https://docs.astral.sh/ruff/) |
+| ty | [ty Documentation](https://docs.astral.sh/ty/) |
